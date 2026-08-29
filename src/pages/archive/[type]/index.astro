@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { archiveTypes, valuesForType, episodesForValue, slugify, type ArchiveType } from '../../../lib/archive';
+
+export async function getStaticPaths() {
+  return Object.keys(archiveTypes).map((type) => ({ params: { type } }));
+}
+
+const type = Astro.params.type as ArchiveType;
+const config = archiveTypes[type];
+const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
+const values = valuesForType(episodes, type);
+const rows = values.map((value) => ({
+  value,
+  count: episodesForValue(episodes, type, value).length,
+  slug: slugify(value)
+}));
+---
+<BaseLayout title={`${config.label} · Archive · Chevron Seven`}>
+  <section class="archive-hero">
+    <div class="shell">
+      <div class="eyebrow">Cross-reference terminal</div>
+      <h1 class="episode-title">{config.label}</h1>
+      <p class="lede">{config.description}</p>
+      <a class="text-link" href="/archive/">← Return to Archive</a>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="archive-directory-head">
+        <span class="mission-label">Index records</span>
+        <strong>{rows.length}</strong>
+      </div>
+
+      <div class="archive-directory">
+        {rows.length > 0 ? rows.map((row) => (
+          <a class="archive-directory-row" href={`/archive/${type}/${row.slug}/`}>
+            <div>
+              <span class="mission-label">{config.singular}</span>
+              <strong>{row.value}</strong>
+            </div>
+            <div class="archive-directory-count">{row.count} {row.count === 1 ? 'mission' : 'missions'} →</div>
+          </a>
+        )) : (
+          <div class="archive-empty">No records have been indexed yet.</div>
+        )}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
