@@ -1,30 +1,48 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import { archiveTypes, valuesForType, type ArchiveType } from '../lib/archive';
 
-const episodes = (await getCollection('episodes')).filter((e) => !e.data.draft);
-const unique = (values) => [...new Set(values)].sort();
-
-const factions = unique(episodes.flatMap((e) => e.data.factions));
-const characters = unique(episodes.flatMap((e) => e.data.characters));
-const technology = unique(episodes.flatMap((e) => e.data.technology));
-const arcs = unique(episodes.flatMap((e) => e.data.arcs));
+const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
+const categories = Object.entries(archiveTypes).map(([type, config]) => ({
+  type: type as ArchiveType,
+  ...config,
+  count: valuesForType(episodes, type as ArchiveType).length
+}));
+const totalRecords = categories.reduce((sum, item) => sum + item.count, 0);
 ---
 <BaseLayout title="Archive · Chevron Seven">
-  <section class="episode-header">
-    <div class="shell">
-      <div class="eyebrow">Cross-reference terminal</div>
-      <h1 class="episode-title">Archive</h1>
-      <p class="lede">The indexes below are generated automatically from episode metadata.</p>
+  <section class="archive-hero archive-hero-main">
+    <div class="shell archive-hero-grid">
+      <div>
+        <div class="eyebrow">Cross-reference terminal</div>
+        <h1 class="episode-title">Archive</h1>
+        <p class="lede">A connected index of the people, powers, places, technology and continuity threads encountered during the rewatch.</p>
+      </div>
+      <div class="archive-summary-card">
+        <span class="mission-label">Indexed records</span>
+        <strong>{totalRecords}</strong>
+        <span>generated from {episodes.length} archived {episodes.length === 1 ? 'mission' : 'missions'}</span>
+      </div>
     </div>
   </section>
 
   <section class="section">
-    <div class="shell grid">
-      <div class="card"><h3>Personnel</h3><div class="pills">{characters.map((x)=><span class="pill">{x}</span>)}</div></div>
-      <div class="card"><h3>Factions</h3><div class="pills">{factions.map((x)=><span class="pill">{x}</span>)}</div></div>
-      <div class="card"><h3>Technology</h3><div class="pills">{technology.map((x)=><span class="pill">{x}</span>)}</div></div>
-      <div class="card"><h3>Story arcs</h3><div class="pills">{arcs.map((x)=><span class="pill">{x}</span>)}</div></div>
+    <div class="shell">
+      <div class="archive-category-grid">
+        {categories.map((category, index) => (
+          <a class="archive-category-card" href={`/archive/${category.type}/`}>
+            <span class="archive-category-number">0{index + 1}</span>
+            <div class="eyebrow">Archive class</div>
+            <h2>{category.label}</h2>
+            <p>{category.description}</p>
+            <div class="archive-category-footer">
+              <span>{category.count} {category.count === 1 ? 'record' : 'records'}</span>
+              <span>Open index →</span>
+            </div>
+          </a>
+        ))}
+      </div>
     </div>
   </section>
 </BaseLayout>
