@@ -149,7 +149,13 @@ const spoilerCopy = d.spoilerLevel === 'episode'
           <strong>{previous.data.title}</strong>
           <span>{previous.data.series} · S{previous.data.season}E{previous.data.episode}</span>
         </a>
-      ) : <div></div>}
+      ) : (
+        <div class="mission-nav-card mission-nav-empty">
+          <span class="mission-label">Previous mission</span>
+          <strong>Archive start</strong>
+          <span>No earlier record loaded.</span>
+        </div>
+      )}
 
       {next ? (
         <a class="mission-nav-card next" href={`/episodes/${next.id}/`}>
@@ -157,7 +163,13 @@ const spoilerCopy = d.spoilerLevel === 'episode'
           <strong>{next.data.title}</strong>
           <span>{next.data.series} · S{next.data.season}E{next.data.episode}</span>
         </a>
-      ) : <div></div>}
+      ) : (
+        <div class="mission-nav-card mission-nav-empty next">
+          <span class="mission-label">Next mission</span>
+          <strong>Current position</strong>
+          <span>Awaiting the next rewatch entry.</span>
+        </div>
+      )}
     </div>
   </nav>
 </BaseLayout>
