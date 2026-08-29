@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { archiveTypes, valuesForType, episodesForValue, slugify, episodeCode, type ArchiveType } from '../../../lib/archive';
+
+export async function getStaticPaths() {
+  const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
+  return Object.keys(archiveTypes).flatMap((rawType) => {
+    const type = rawType as ArchiveType;
+    return valuesForType(episodes, type).map((value) => ({
+      params: { type, slug: slugify(value) },
+      props: { type, value }
+    }));
+  });
+}
+
+const { type, value } = Astro.props as { type: ArchiveType; value: string };
+const config = archiveTypes[type];
+const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
+const linked = episodesForValue(episodes, type, value);
+---
+<BaseLayout title={`${value} · ${config.label} · Chevron Seven`}>
+  <section class="archive-hero">
+    <div class="shell archive-entity-hero">
+      <div>
+        <div class="eyebrow">{config.singular}</div>
+        <h1 class="episode-title">{value}</h1>
+        <p class="lede">Indexed automatically from mission metadata. This record currently links to {linked.length} archived {linked.length === 1 ? 'mission' : 'missions'}.</p>
+      </div>
+      <div class="archive-entity-code">{String(linked.length).padStart(2, '0')}</div>
+    </div>
+  </section>
+
+  <section class="mission-bar">
+    <div class="shell mission-bar-inner">
+      <div><span class="mission-label">Archive class</span><strong>{config.label}</strong></div>
+      <div><span class="mission-label">Linked missions</span><strong>{linked.length}</strong></div>
+      <div><span class="mission-label">Status</span><strong>ACTIVE RECORD</strong></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Mission backlinks</div>
+          <h2>Referenced missions</h2>
+        </div>
+        <a class="text-link" href={`/archive/${type}/`}>← {config.label}</a>
+      </div>
+
+      <div class="archive-mission-list">
+        {linked.map((entry) => (
+          <a class="archive-mission-row" href={`/episodes/${entry.id}/`}>
+            <div class="archive-mission-code">{episodeCode(entry)}</div>
+            <div class="archive-mission-copy">
+              <span class="mission-label">{entry.data.series}</span>
+              <strong>{entry.data.title}</strong>
+              <div class="pills compact-pills">
+                {entry.data.missionType.slice(0, 3).map((item) => <span class="pill">{item}</span>)}
+              </div>
+            </div>
+            <div class="archive-mission-score">Rewatch <strong>{entry.data.rewatchRating}/5</strong> →</div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
