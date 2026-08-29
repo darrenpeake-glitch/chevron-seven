@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const episodes = (await getCollection('episodes'))
+  .filter((entry) => !entry.data.draft)
+  .sort((a, b) => {
+    if (a.data.series !== b.data.series) return a.data.series.localeCompare(b.data.series);
+    if (a.data.season !== b.data.season) return a.data.season - b.data.season;
+    return a.data.episode - b.data.episode;
+  });
+---
+<BaseLayout title="Mission Log · Chevron Seven">
+  <section class="episode-header">
+    <div class="shell">
+      <div class="eyebrow">SGC archive</div>
+      <h1 class="episode-title">Mission Log</h1>
+      <p class="lede">Episode-by-episode rewatch notes and continuity records.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell grid">
+      {episodes.map((entry) => (
+        <a class="card" href={`/episodes/${entry.id}/`}>
+          <div class="meta">{entry.data.series} · S{entry.data.season}E{entry.data.episode}</div>
+          <h3>{entry.data.title}</h3>
+          <div class="pills">
+            {entry.data.factions.slice(0,3).map((item) => <span class="pill">{item}</span>)}
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
