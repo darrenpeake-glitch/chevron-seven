@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const episodes = (await getCollection('episodes')).filter((e) => !e.data.draft);
+const unique = (values) => [...new Set(values)].sort();
+
+const factions = unique(episodes.flatMap((e) => e.data.factions));
+const characters = unique(episodes.flatMap((e) => e.data.characters));
+const technology = unique(episodes.flatMap((e) => e.data.technology));
+const arcs = unique(episodes.flatMap((e) => e.data.arcs));
+---
+<BaseLayout title="Archive · Chevron Seven">
+  <section class="episode-header">
+    <div class="shell">
+      <div class="eyebrow">Cross-reference terminal</div>
+      <h1 class="episode-title">Archive</h1>
+      <p class="lede">The indexes below are generated automatically from episode metadata.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell grid">
+      <div class="card"><h3>Personnel</h3><div class="pills">{characters.map((x)=><span class="pill">{x}</span>)}</div></div>
+      <div class="card"><h3>Factions</h3><div class="pills">{factions.map((x)=><span class="pill">{x}</span>)}</div></div>
+      <div class="card"><h3>Technology</h3><div class="pills">{technology.map((x)=><span class="pill">{x}</span>)}</div></div>
+      <div class="card"><h3>Story arcs</h3><div class="pills">{arcs.map((x)=><span class="pill">{x}</span>)}</div></div>
+    </div>
+  </section>
+</BaseLayout>
