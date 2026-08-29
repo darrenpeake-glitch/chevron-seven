@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const episodes = (await getCollection('episodes'))
+  .filter((entry) => !entry.data.draft)
+  .sort((a, b) => {
+    if (a.data.series !== b.data.series) return a.data.series.localeCompare(b.data.series);
+    if (a.data.season !== b.data.season) return a.data.season - b.data.season;
+    return a.data.episode - b.data.episode;
+  });
+
+const latest = episodes.slice(-3).reverse();
+---
+<BaseLayout>
+  <section class="hero">
+    <div class="shell">
+      <div class="eyebrow">Incoming wormhole</div>
+      <h1>Chevron Seven</h1>
+      <p class="lede">
+        The Stargate rewatch companion: episode context, continuity, lore,
+        characters, technology — and the occasional Teal'c eyebrow.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="eyebrow">Current mission log</div>
+      <h2>Latest archive entries</h2>
+      <div class="grid">
+        {latest.map((entry) => (
+          <a class="card" href={`/episodes/${entry.id}/`}>
+            <div class="meta">{entry.data.series} · S{entry.data.season}E{entry.data.episode}</div>
+            <h3>{entry.data.title}</h3>
+            <div class="pills">
+              <span class="pill">Rewatch {entry.data.rewatchRating}/5</span>
+              {entry.data.oneillSarcasm !== undefined && <span class="pill">O'Neill {entry.data.oneillSarcasm}/10</span>}
+              {entry.data.tealcEyebrow && <span class="pill">Eyebrow: {entry.data.tealcEyebrow}</span>}
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="eyebrow">Archive design</div>
+      <h2>Built around the rewatch</h2>
+      <div class="grid">
+        <div class="card"><h3>Why It Matters</h3><p class="meta">The continuity and lore contribution without a bloated plot recap.</p></div>
+        <div class="card"><h3>Cross-linked lore</h3><p class="meta">Characters, factions, worlds, technology and story arcs become browsable indexes.</p></div>
+        <div class="card"><h3>Essential metrics</h3><p class="meta">Rewatch score, O'Neill Sarcasm Rating and the Teal'c Eyebrow Index.</p></div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
