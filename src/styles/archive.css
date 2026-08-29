@@ -1,0 +1,43 @@
+.archive-hero { padding: 5.3rem 0 3.2rem; border-bottom: 1px solid var(--line); background: radial-gradient(circle at 80% 10%, rgba(212,167,76,.08), transparent 24rem); }
+.archive-hero-main { position: relative; overflow: hidden; }
+.archive-hero-main::after { content: ""; position: absolute; width: 430px; height: 430px; border-radius: 50%; border: 1px solid rgba(212,167,76,.08); right: -170px; top: -205px; pointer-events: none; }
+.archive-hero-grid, .archive-entity-hero { display: grid; grid-template-columns: minmax(0,1fr) 260px; gap: 3rem; align-items: end; }
+.archive-summary-card { min-height: 180px; padding: 1.25rem; border: 1px solid var(--line); border-radius: 14px; background: rgba(17,23,27,.78); display: grid; align-content: end; gap: .25rem; }
+.archive-summary-card strong { color: var(--accent); font-size: 3rem; line-height: 1; }
+.archive-summary-card > span:last-child { color: var(--muted); font-size: .82rem; }
+.archive-category-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); gap: 1rem; }
+.archive-category-card { min-height: 250px; padding: 1.4rem; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); text-decoration: none; display: flex; flex-direction: column; position: relative; transition: transform .15s ease,border-color .15s ease; }
+.archive-category-card:hover { transform: translateY(-2px); border-color: var(--accent-soft); }
+.archive-category-card h2 { margin: .6rem 0 .8rem; font-size: 2rem; }
+.archive-category-card p { color: var(--muted); line-height: 1.6; max-width: 38ch; }
+.archive-category-number { position: absolute; right: 1.2rem; top: 1rem; color: rgba(212,167,76,.38); font-size: 1.7rem; font-weight: 900; }
+.archive-category-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(41,53,59,.7); display: flex; justify-content: space-between; color: var(--muted); font-size: .82rem; }
+.archive-directory-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+.archive-directory-head strong { color: var(--accent); }
+.archive-directory { display: grid; }
+.archive-directory-row { text-decoration: none; display: flex; justify-content: space-between; gap: 2rem; align-items: center; padding: 1.2rem 0; border-bottom: 1px solid rgba(41,53,59,.75); }
+.archive-directory-row > div:first-child { display: grid; gap: .35rem; }
+.archive-directory-row strong { font-size: 1.12rem; }
+.archive-directory-row:hover strong { color: var(--accent); }
+.archive-directory-count { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+.archive-empty { padding: 2rem 0; color: var(--muted); }
+.archive-entity-code { justify-self: end; color: rgba(212,167,76,.22); font-size: 6rem; line-height: 1; font-weight: 900; letter-spacing: -.06em; }
+.archive-mission-list { display: grid; }
+.archive-mission-row { text-decoration: none; display: grid; grid-template-columns: 90px minmax(0,1fr) auto; gap: 1.4rem; align-items: center; padding: 1.2rem 0; border-bottom: 1px solid rgba(41,53,59,.75); }
+.archive-mission-row:hover .archive-mission-copy strong { color: var(--accent); }
+.archive-mission-code { color: var(--accent); font-weight: 800; font-size: .8rem; letter-spacing: .06em; }
+.archive-mission-copy { display: grid; gap: .28rem; min-width: 0; }
+.archive-mission-copy > strong { font-size: 1.08rem; }
+.archive-mission-score { color: var(--muted); font-size: .82rem; white-space: nowrap; }
+.archive-mission-score strong { color: var(--text); }
+.compact-pills { margin-top: .25rem; }
+.archive-list a { border: 1px solid var(--line); border-radius: 999px; padding: .27rem .55rem; font-size: .75rem; color: var(--muted); background: rgba(8,11,13,.28); text-decoration: none; }
+.archive-list a:hover { color: var(--accent); border-color: var(--accent-soft); }
+.archive-group-link { text-decoration: none; }
+.archive-group-link:hover { color: var(--accent); }
+@media (max-width: 760px) {
+  .archive-hero-grid, .archive-entity-hero { grid-template-columns: 1fr; gap: 2rem; }
+  .archive-entity-code { justify-self: start; font-size: 4rem; }
+  .archive-mission-row { grid-template-columns: 70px minmax(0,1fr); }
+  .archive-mission-score { grid-column: 2; }
+}
