@@ -4,41 +4,160 @@ import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
   const episodes = await getCollection('episodes');
-  return episodes
+  const published = episodes
     .filter((entry) => !entry.data.draft)
-    .map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+    .sort((a, b) => {
+      if (a.data.series !== b.data.series) return a.data.series.localeCompare(b.data.series);
+      if (a.data.season !== b.data.season) return a.data.season - b.data.season;
+      return a.data.episode - b.data.episode;
+    });
+
+  return published.map((entry, index) => ({
+    params: { id: entry.id },
+    props: {
+      entry,
+      previous: index > 0 && published[index - 1].data.series === entry.data.series ? published[index - 1] : null,
+      next: index < published.length - 1 && published[index + 1].data.series === entry.data.series ? published[index + 1] : null
+    }
+  }));
 }
 
-const { entry } = Astro.props;
+const { entry, previous, next } = Astro.props;
 const { Content } = await render(entry);
 const d = entry.data;
+const episodeCode = `S${String(d.season).padStart(2, '0')}E${String(d.episode).padStart(2, '0')}`;
+const spoilerCopy = d.spoilerLevel === 'episode'
+  ? 'Safe after completing this episode.'
+  : d.spoilerLevel === 'season'
+    ? 'May reference later events in this season.'
+    : 'Full-series retrospective spoilers possible.';
 ---
-<BaseLayout title={`${d.title} · Chevron Seven`}>
-  <section class="episode-header">
-    <div class="shell">
-      <div class="eyebrow">{d.series} · Mission record S{d.season}E{d.episode}</div>
-      <h1 class="episode-title">{d.title}</h1>
-      <div class="pills">{d.missionType.map((item) => <span class="pill">{item}</span>)}</div>
-      <div class="stats">
-        <div class="stat"><span class="meta">Rewatch rating</span><strong>{d.rewatchRating}/5</strong></div>
-        {d.oneillSarcasm !== undefined && <div class="stat"><span class="meta">O'Neill sarcasm</span><strong>{d.oneillSarcasm}/10</strong></div>}
-        {d.tealcEyebrow && <div class="stat"><span class="meta">Teal'c eyebrow</span><strong style="text-transform:capitalize">{d.tealcEyebrow}</strong></div>}
+<BaseLayout title={`${d.title} · Chevron Seven`} description={`${d.series} ${episodeCode} — ${d.title}. Chevron Seven mission file.`}>
+  <section class="mission-hero">
+    <div class="shell mission-hero-grid">
+      <div>
+        <div class="mission-kicker">
+          <span>MISSION FILE</span>
+          <span>{d.series}</span>
+          <span>{episodeCode}</span>
+        </div>
+        <h1 class="episode-title">{d.title}</h1>
+        <div class="pills mission-types">
+          {d.missionType.map((item) => <span class="pill">{item}</span>)}
+        </div>
+      </div>
+
+      <aside class="mission-status" aria-label="Mission status">
+        <div class="mission-code">{episodeCode}</div>
+        <div class="eyebrow">Archive status</div>
+        <strong>FILE OPEN</strong>
+        <span>{d.series} · Season {d.season}</span>
+      </aside>
+    </div>
+  </section>
+
+  <section class="mission-bar">
+    <div class="shell mission-bar-inner">
+      <div>
+        <span class="mission-label">Spoiler boundary</span>
+        <strong>{spoilerCopy}</strong>
+      </div>
+      <div>
+        <span class="mission-label">Archive scope</span>
+        <strong>{d.spoilerLevel}</strong>
+      </div>
+      <div>
+        <span class="mission-label">Record</span>
+        <strong>{d.series} / {episodeCode}</strong>
       </div>
     </div>
   </section>
 
-  <section class="section">
-    <div class="shell">
-      <article><Content /></article>
-      <div class="card" style="margin-top:3rem">
-        <div class="eyebrow">Archive links</div>
-        <div class="pills">
-          {d.characters.map((x) => <span class="pill">Personnel: {x}</span>)}
-          {d.factions.map((x) => <span class="pill">Faction: {x}</span>)}
-          {d.technology.map((x) => <span class="pill">Tech: {x}</span>)}
-          {d.arcs.map((x) => <span class="pill">Arc: {x}</span>)}
+  <section class="section mission-body-section">
+    <div class="shell mission-layout">
+      <main class="mission-main">
+        <article class="mission-article">
+          <Content />
+        </article>
+      </main>
+
+      <aside class="mission-sidebar">
+        <div class="sidebar-panel">
+          <div class="eyebrow">Chevron Seven metrics</div>
+          <div class="metric-list">
+            <div class="metric-row">
+              <span>Rewatch rating</span>
+              <strong>{d.rewatchRating}/5</strong>
+            </div>
+            {d.oneillSarcasm !== undefined && (
+              <div class="metric-row">
+                <span>O'Neill sarcasm</span>
+                <strong>{d.oneillSarcasm}/10</strong>
+              </div>
+            )}
+            {d.tealcEyebrow && (
+              <div class="metric-row">
+                <span>Teal'c eyebrow</span>
+                <strong class="capitalize">{d.tealcEyebrow}</strong>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+
+        <div class="sidebar-panel">
+          <div class="eyebrow">Archive links</div>
+          {d.characters.length > 0 && (
+            <div class="archive-group">
+              <span class="mission-label">Personnel</span>
+              <div class="archive-list">{d.characters.map((x) => <span>{x}</span>)}</div>
+            </div>
+          )}
+          {d.factions.length > 0 && (
+            <div class="archive-group">
+              <span class="mission-label">Factions</span>
+              <div class="archive-list">{d.factions.map((x) => <span>{x}</span>)}</div>
+            </div>
+          )}
+          {d.worlds.length > 0 && (
+            <div class="archive-group">
+              <span class="mission-label">Worlds</span>
+              <div class="archive-list">{d.worlds.map((x) => <span>{x}</span>)}</div>
+            </div>
+          )}
+          {d.technology.length > 0 && (
+            <div class="archive-group">
+              <span class="mission-label">Technology</span>
+              <div class="archive-list">{d.technology.map((x) => <span>{x}</span>)}</div>
+            </div>
+          )}
+          {d.arcs.length > 0 && (
+            <div class="archive-group">
+              <span class="mission-label">Story arcs</span>
+              <div class="archive-list">{d.arcs.map((x) => <span>{x}</span>)}</div>
+            </div>
+          )}
+        </div>
+      </aside>
     </div>
   </section>
+
+  <nav class="mission-nav" aria-label="Episode navigation">
+    <div class="shell mission-nav-grid">
+      {previous ? (
+        <a class="mission-nav-card previous" href={`/episodes/${previous.id}/`}>
+          <span class="mission-label">Previous mission</span>
+          <strong>{previous.data.title}</strong>
+          <span>{previous.data.series} · S{previous.data.season}E{previous.data.episode}</span>
+        </a>
+      ) : <div></div>}
+
+      {next ? (
+        <a class="mission-nav-card next" href={`/episodes/${next.id}/`}>
+          <span class="mission-label">Next mission</span>
+          <strong>{next.data.title}</strong>
+          <span>{next.data.series} · S{next.data.season}E{next.data.episode}</span>
+        </a>
+      ) : <div></div>}
+    </div>
+  </nav>
 </BaseLayout>
