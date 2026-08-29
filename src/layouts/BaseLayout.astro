@@ -1,0 +1,42 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Chevron Seven',
+  description = 'The Stargate rewatch companion.'
+} = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="shell header-inner">
+        <a class="brand" href="/">Chevron <span>Seven</span></a>
+        <nav aria-label="Primary navigation">
+          <a href="/episodes">Mission Log</a>
+          <a href="/archive">Archive</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main><slot /></main>
+
+    <footer class="footer">
+      <div class="shell">
+        Chevron Seven is an unofficial fan project. Stargate and related marks belong to their respective rights holders.
+      </div>
+    </footer>
+  </body>
+</html>
