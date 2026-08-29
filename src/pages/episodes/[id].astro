@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const episodes = await getCollection('episodes');
+  return episodes
+    .filter((entry) => !entry.data.draft)
+    .map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+---
+<BaseLayout title={`${d.title} · Chevron Seven`}>
+  <section class="episode-header">
+    <div class="shell">
+      <div class="eyebrow">{d.series} · Mission record S{d.season}E{d.episode}</div>
+      <h1 class="episode-title">{d.title}</h1>
+      <div class="pills">{d.missionType.map((item) => <span class="pill">{item}</span>)}</div>
+      <div class="stats">
+        <div class="stat"><span class="meta">Rewatch rating</span><strong>{d.rewatchRating}/5</strong></div>
+        {d.oneillSarcasm !== undefined && <div class="stat"><span class="meta">O'Neill sarcasm</span><strong>{d.oneillSarcasm}/10</strong></div>}
+        {d.tealcEyebrow && <div class="stat"><span class="meta">Teal'c eyebrow</span><strong style="text-transform:capitalize">{d.tealcEyebrow}</strong></div>}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <article><Content /></article>
+      <div class="card" style="margin-top:3rem">
+        <div class="eyebrow">Archive links</div>
+        <div class="pills">
+          {d.characters.map((x) => <span class="pill">Personnel: {x}</span>)}
+          {d.factions.map((x) => <span class="pill">Faction: {x}</span>)}
+          {d.technology.map((x) => <span class="pill">Tech: {x}</span>)}
+          {d.arcs.map((x) => <span class="pill">Arc: {x}</span>)}
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
