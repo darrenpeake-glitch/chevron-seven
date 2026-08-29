@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
+import { slugify } from '../../lib/archive';
 
 export async function getStaticPaths() {
   const episodes = await getCollection('episodes');
@@ -58,84 +59,33 @@ const spoilerCopy = d.spoilerLevel === 'episode'
 
   <section class="mission-bar">
     <div class="shell mission-bar-inner">
-      <div>
-        <span class="mission-label">Spoiler boundary</span>
-        <strong>{spoilerCopy}</strong>
-      </div>
-      <div>
-        <span class="mission-label">Archive scope</span>
-        <strong>{d.spoilerLevel}</strong>
-      </div>
-      <div>
-        <span class="mission-label">Record</span>
-        <strong>{d.series} / {episodeCode}</strong>
-      </div>
+      <div><span class="mission-label">Spoiler boundary</span><strong>{spoilerCopy}</strong></div>
+      <div><span class="mission-label">Archive scope</span><strong>{d.spoilerLevel}</strong></div>
+      <div><span class="mission-label">Record</span><strong>{d.series} / {episodeCode}</strong></div>
     </div>
   </section>
 
   <section class="section mission-body-section">
     <div class="shell mission-layout">
-      <main class="mission-main">
-        <article class="mission-article">
-          <Content />
-        </article>
-      </main>
+      <main class="mission-main"><article class="mission-article"><Content /></article></main>
 
       <aside class="mission-sidebar">
         <div class="sidebar-panel">
           <div class="eyebrow">Chevron Seven metrics</div>
           <div class="metric-list">
-            <div class="metric-row">
-              <span>Rewatch rating</span>
-              <strong>{d.rewatchRating}/5</strong>
-            </div>
-            {d.oneillSarcasm !== undefined && (
-              <div class="metric-row">
-                <span>O'Neill sarcasm</span>
-                <strong>{d.oneillSarcasm}/10</strong>
-              </div>
-            )}
-            {d.tealcEyebrow && (
-              <div class="metric-row">
-                <span>Teal'c eyebrow</span>
-                <strong class="capitalize">{d.tealcEyebrow}</strong>
-              </div>
-            )}
+            <div class="metric-row"><span>Rewatch rating</span><strong>{d.rewatchRating}/5</strong></div>
+            {d.oneillSarcasm !== undefined && <div class="metric-row"><span>O'Neill sarcasm</span><strong>{d.oneillSarcasm}/10</strong></div>}
+            {d.tealcEyebrow && <div class="metric-row"><span>Teal'c eyebrow</span><strong class="capitalize">{d.tealcEyebrow}</strong></div>}
           </div>
         </div>
 
         <div class="sidebar-panel">
           <div class="eyebrow">Archive links</div>
-          {d.characters.length > 0 && (
-            <div class="archive-group">
-              <span class="mission-label">Personnel</span>
-              <div class="archive-list">{d.characters.map((x) => <span>{x}</span>)}</div>
-            </div>
-          )}
-          {d.factions.length > 0 && (
-            <div class="archive-group">
-              <span class="mission-label">Factions</span>
-              <div class="archive-list">{d.factions.map((x) => <span>{x}</span>)}</div>
-            </div>
-          )}
-          {d.worlds.length > 0 && (
-            <div class="archive-group">
-              <span class="mission-label">Worlds</span>
-              <div class="archive-list">{d.worlds.map((x) => <span>{x}</span>)}</div>
-            </div>
-          )}
-          {d.technology.length > 0 && (
-            <div class="archive-group">
-              <span class="mission-label">Technology</span>
-              <div class="archive-list">{d.technology.map((x) => <span>{x}</span>)}</div>
-            </div>
-          )}
-          {d.arcs.length > 0 && (
-            <div class="archive-group">
-              <span class="mission-label">Story arcs</span>
-              <div class="archive-list">{d.arcs.map((x) => <span>{x}</span>)}</div>
-            </div>
-          )}
+          {d.characters.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/personnel/">Personnel</a><div class="archive-list">{d.characters.map((x) => <a href={`/archive/personnel/${slugify(x)}/`}>{x}</a>)}</div></div>}
+          {d.factions.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/factions/">Factions</a><div class="archive-list">{d.factions.map((x) => <a href={`/archive/factions/${slugify(x)}/`}>{x}</a>)}</div></div>}
+          {d.worlds.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/worlds/">Worlds</a><div class="archive-list">{d.worlds.map((x) => <a href={`/archive/worlds/${slugify(x)}/`}>{x}</a>)}</div></div>}
+          {d.technology.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/technology/">Technology</a><div class="archive-list">{d.technology.map((x) => <a href={`/archive/technology/${slugify(x)}/`}>{x}</a>)}</div></div>}
+          {d.arcs.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/arcs/">Story arcs</a><div class="archive-list">{d.arcs.map((x) => <a href={`/archive/arcs/${slugify(x)}/`}>{x}</a>)}</div></div>}
         </div>
       </aside>
     </div>
@@ -143,33 +93,8 @@ const spoilerCopy = d.spoilerLevel === 'episode'
 
   <nav class="mission-nav" aria-label="Episode navigation">
     <div class="shell mission-nav-grid">
-      {previous ? (
-        <a class="mission-nav-card previous" href={`/episodes/${previous.id}/`}>
-          <span class="mission-label">Previous mission</span>
-          <strong>{previous.data.title}</strong>
-          <span>{previous.data.series} · S{previous.data.season}E{previous.data.episode}</span>
-        </a>
-      ) : (
-        <div class="mission-nav-card mission-nav-empty">
-          <span class="mission-label">Previous mission</span>
-          <strong>Archive start</strong>
-          <span>No earlier record loaded.</span>
-        </div>
-      )}
-
-      {next ? (
-        <a class="mission-nav-card next" href={`/episodes/${next.id}/`}>
-          <span class="mission-label">Next mission</span>
-          <strong>{next.data.title}</strong>
-          <span>{next.data.series} · S{next.data.season}E{next.data.episode}</span>
-        </a>
-      ) : (
-        <div class="mission-nav-card mission-nav-empty next">
-          <span class="mission-label">Next mission</span>
-          <strong>Current position</strong>
-          <span>Awaiting the next rewatch entry.</span>
-        </div>
-      )}
+      {previous ? <a class="mission-nav-card previous" href={`/episodes/${previous.id}/`}><span class="mission-label">Previous mission</span><strong>{previous.data.title}</strong><span>{previous.data.series} · S{previous.data.season}E{previous.data.episode}</span></a> : <div class="mission-nav-card mission-nav-empty"><span class="mission-label">Previous mission</span><strong>Archive start</strong><span>No earlier record loaded.</span></div>}
+      {next ? <a class="mission-nav-card next" href={`/episodes/${next.id}/`}><span class="mission-label">Next mission</span><strong>{next.data.title}</strong><span>{next.data.series} · S{next.data.season}E{next.data.episode}</span></a> : <div class="mission-nav-card mission-nav-empty next"><span class="mission-label">Next mission</span><strong>Current position</strong><span>Awaiting the next rewatch entry.</span></div>}
     </div>
   </nav>
 </BaseLayout>
