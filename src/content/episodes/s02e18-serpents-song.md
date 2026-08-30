@@ -23,6 +23,11 @@ technology:
   - "Stargate"
 arcs:
   - "Goa'uld conflict"
+questions:
+  - question: "Who is Sokar, and why is even Apophis terrified of him?"
+    resolvesAt: "sg1:3:13"
+    answer: "Sokar is a powerful Goa'uld System Lord with a major military power base and the prison moon Ne'tu. The Tok'ra operation against him ultimately destroys his immediate threat."
+    note: "For now, Sokar is mostly defined by reputation: someone capable of defeating, torturing and breaking Apophis."
 previouslyRelevant:
   - watchKey: "sg1:2:1"
     reason: "Earth's destruction of Apophis's invasion fleet is the defeat that leaves its former enemy diminished enough to become prey for rival Goa'uld powers."
