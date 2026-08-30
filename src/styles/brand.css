@@ -1,33 +1,122 @@
+.site-header {
+  border-bottom-color: rgba(212,167,76,.72);
+  box-shadow: 0 1px 0 rgba(212,167,76,.08);
+}
+
+.header-inner {
+  min-height: 88px;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: .7rem;
+  gap: .9rem;
+  min-width: 0;
   text-decoration: none;
   text-transform: uppercase;
-  letter-spacing: .18em;
-  font-weight: 800;
 }
 
 .brand-mark {
-  width: 34px;
-  height: 40px;
+  width: 44px;
+  height: 52px;
   flex: 0 0 auto;
   display: block;
 }
 
+.brand-copy {
+  display: grid;
+  gap: .28rem;
+  min-width: 0;
+}
+
 .brand-wordmark {
-  display: inline-flex;
-  align-items: baseline;
-  gap: .38rem;
+  color: var(--text);
+  font-size: 1.02rem;
+  line-height: 1;
+  letter-spacing: .19em;
+  font-weight: 850;
   white-space: nowrap;
 }
 
-.brand-wordmark span {
+.brand-tagline {
   color: var(--accent);
+  font-size: .58rem;
+  line-height: 1;
+  letter-spacing: .19em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.site-header nav {
+  align-items: center;
+  gap: 1.15rem;
+}
+
+@media (max-width: 760px) {
+  .header-inner {
+    min-height: 76px;
+    gap: 1rem;
+  }
+
+  .brand {
+    gap: .65rem;
+  }
+
+  .brand-mark {
+    width: 35px;
+    height: 42px;
+  }
+
+  .brand-wordmark {
+    font-size: .9rem;
+    letter-spacing: .15em;
+  }
+
+  .brand-tagline {
+    display: none;
+  }
+
+  .site-header nav {
+    gap: .75rem;
+  }
+
+  .site-header nav a {
+    font-size: .82rem;
+  }
 }
 
 @media (max-width: 560px) {
-  .brand { gap: .5rem; }
-  .brand-mark { width: 29px; height: 34px; }
-  .brand-wordmark { font-size: .86rem; letter-spacing: .13em; }
+  .header-inner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: .7rem;
+    padding-top: .75rem;
+    padding-bottom: .7rem;
+  }
+
+  .brand-mark {
+    width: 31px;
+    height: 37px;
+  }
+
+  .brand-wordmark {
+    font-size: .84rem;
+    letter-spacing: .14em;
+  }
+
+  .site-header nav {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: .15rem;
+    scrollbar-width: none;
+  }
+
+  .site-header nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .site-header nav a {
+    white-space: nowrap;
+  }
 }
