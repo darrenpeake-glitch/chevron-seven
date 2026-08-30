@@ -24,7 +24,11 @@ technology:
 arcs:
   - "Tok'ra alliance"
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "goauld-political-order"
+    role: development
+    relevance: secondary
+    note: "Seth demonstrates that Goa'uld power and survival can exist outside the contemporary System Lord hierarchy."
 spoilerLevel: episode
 rewatchRating: 4
 featured: false
