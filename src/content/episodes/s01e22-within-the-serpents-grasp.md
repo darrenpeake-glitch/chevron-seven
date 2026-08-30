@@ -28,6 +28,11 @@ connections:
   - Ship episode
   - Earth politics
 continuityWeight: essential
+questions:
+  - question: "How can Earth possibly stop two Goa'uld motherships when the Stargate programme has almost no space-based defence?"
+    resolvesAt: "sg1:2:1"
+    answer: "SG-1 destroys the motherships from inside while Bra'tac helps them escape, preventing the invasion before Earth needs to fight the ships conventionally."
+    note: "The cliffhanger is intentionally brutal: Earth knows the attack is coming but appears technologically helpless against it."
 previouslyRelevant:
   - watchKey: "sg1:1:21"
     reason: "The political decision to shut down the Stargate programme leaves SG-1 with no official route to act when Daniel's warning of an incoming Goa'uld attack proves urgent."
