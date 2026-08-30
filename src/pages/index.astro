@@ -10,16 +10,20 @@ const episodes = (await getCollection('episodes'))
     if (a.data.season !== b.data.season) return a.data.season - b.data.season;
     return a.data.episode - b.data.episode;
   });
+const films = (await getCollection('films')).filter((entry) => !entry.data.draft);
 
 const latest = episodes.slice(-3).reverse();
-const archivedByKey = new Map(episodes.map((entry) => [watchKeyForEpisode(entry.data.series, entry.data.season, entry.data.episode), entry]));
+const archiveHrefByKey = new Map([
+  ...episodes.map((entry) => [watchKeyForEpisode(entry.data.series, entry.data.season, entry.data.episode), `/episodes/${entry.id}/`]),
+  ...films.map((entry) => [entry.data.watchKey, `/films/${entry.id}/`])
+]);
 const progressEntries = watchOrder.map((entry, index) => ({
   key: entry.key,
   index,
   series: entry.series,
   code: codeForWatchEntry(entry),
   title: entry.title,
-  archiveId: archivedByKey.get(entry.key)?.id ?? null
+  archiveHref: archiveHrefByKey.get(entry.key) ?? null
 }));
 ---
 <BaseLayout>
@@ -115,9 +119,9 @@ const progressEntries = watchOrder.map((entry, index) => ({
         }
         code.textContent = `${current.series} · ${current.code}`;
         title.textContent = current.title;
-        if (current.archiveId) {
+        if (current.archiveHref) {
           link.textContent = 'Open current mission →';
-          link.href = `/episodes/${current.archiveId}/`;
+          link.href = current.archiveHref;
         } else {
           link.textContent = 'Open watch order →';
           link.href = '/watch-order';
