@@ -1,6 +1,7 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
+const seriesName = z.enum(['SG-1', 'Atlantis', 'Universe']);
 const threadRole = z.enum(['breadcrumb', 'development', 'escalation', 'reveal', 'turning-point', 'payoff', 'aftermath']);
 const relevance = z.enum(['primary', 'secondary']);
 
@@ -8,7 +9,7 @@ const episodes = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/episodes' }),
   schema: z.object({
     title: z.string(),
-    series: z.enum(['SG-1', 'Atlantis', 'Universe']),
+    series: seriesName,
     season: z.number().int().positive(),
     episode: z.number().int().positive(),
     airDate: z.coerce.date().optional(),
@@ -47,7 +48,7 @@ const lore = defineCollection({
     summary: z.string(),
     spoilerLevel: z.enum(['episode', 'season', 'series']).default('episode'),
     safeThrough: z.object({
-      series: z.enum(['SG-1', 'Atlantis', 'Universe']),
+      series: seriesName,
       season: z.number().int().positive(),
       episode: z.number().int().positive()
     }).optional(),
@@ -66,6 +67,16 @@ const threads = defineCollection({
     spoilerLevel: z.enum(['episode', 'season', 'series', 'franchise']).default('series'),
     status: z.string().default('ACTIVE THREAD'),
     aliases: z.array(z.string()).default([]),
+    milestones: z.array(z.object({
+      series: seriesName,
+      season: z.number().int().positive(),
+      episode: z.number().int().positive(),
+      title: z.string(),
+      role: threadRole,
+      relevance: relevance.default('primary'),
+      firstWatch: z.string(),
+      rewatch: z.string().optional()
+    })).default([]),
     draft: z.boolean().default(false)
   })
 });
