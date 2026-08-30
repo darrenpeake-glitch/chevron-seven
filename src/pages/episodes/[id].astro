@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
 import { slugify } from '../../lib/archive';
+import { watchOrder, watchOrderIndex, watchKeyForEpisode } from '../../lib/watch-order';
 
 export async function getStaticPaths() {
   const episodes = await getCollection('episodes');
@@ -29,6 +30,9 @@ const d = entry.data;
 const threadRecords = (await getCollection('threads')).filter((thread) => !thread.data.draft);
 const threadName = (id: string) => threadRecords.find((thread) => thread.id === id)?.data.name ?? id;
 const episodeCode = `S${String(d.season).padStart(2, '0')}E${String(d.episode).padStart(2, '0')}`;
+const watchKey = watchKeyForEpisode(d.series, d.season, d.episode);
+const watchIndex = watchOrderIndex.get(watchKey);
+const throughKeys = watchIndex === undefined ? [watchKey] : watchOrder.slice(0, watchIndex + 1).map((item) => item.key);
 const spoilerCopy = d.spoilerLevel === 'episode'
   ? 'Safe after completing this episode.'
   : d.spoilerLevel === 'season'
@@ -120,6 +124,16 @@ const spoilerCopy = d.spoilerLevel === 'episode'
       </main>
 
       <aside class="mission-sidebar">
+        <div class="sidebar-panel watch-panel" data-watch-key={watchKey}>
+          <div class="eyebrow">Your watch progress</div>
+          <strong class="watch-state" id="mission-watch-state">Not marked watched</strong>
+          <div class="watch-actions">
+            <button class="watch-action primary-watch" id="mission-watch-toggle" type="button">Mark watched</button>
+            <button class="watch-action" id="mission-watch-through" type="button">Mark watched through here</button>
+          </div>
+          <a class="text-link watch-order-link" href="/watch-order">Open full watch order →</a>
+        </div>
+
         <div class="sidebar-panel">
           <div class="eyebrow">Chevron Seven metrics</div>
           <div class="metric-list">
@@ -147,6 +161,30 @@ const spoilerCopy = d.spoilerLevel === 'episode'
       {next ? <a class="mission-nav-card next" href={`/episodes/${next.id}/`}><span class="mission-label">Next mission</span><strong>{next.data.title}</strong><span>{next.data.series} · S{next.data.season}E{next.data.episode}</span></a> : <div class="mission-nav-card mission-nav-empty next"><span class="mission-label">Next mission</span><strong>Current position</strong><span>Awaiting the next rewatch entry.</span></div>}
     </div>
   </nav>
+
+  <script id="mission-through-keys" type="application/json" set:html={JSON.stringify(throughKeys)}></script>
+  <script src="/watch-progress.js"></script>
+  <script is:inline>
+    (() => {
+      const panel = document.querySelector('.watch-panel');
+      if (!panel || !window.ChevronWatch) return;
+      const key = panel.dataset.watchKey;
+      const throughKeys = JSON.parse(document.getElementById('mission-through-keys').textContent || '[]');
+      const state = document.getElementById('mission-watch-state');
+      const toggle = document.getElementById('mission-watch-toggle');
+      const through = document.getElementById('mission-watch-through');
+      const render = () => {
+        const isWatched = window.ChevronWatch.watched(key);
+        state.textContent = isWatched ? 'Watched ✓' : 'Not marked watched';
+        state.classList.toggle('is-watched', isWatched);
+        toggle.textContent = isWatched ? 'Mark unwatched' : 'Mark watched';
+      };
+      toggle.addEventListener('click', () => window.ChevronWatch.mark(key, !window.ChevronWatch.watched(key)));
+      through.addEventListener('click', () => window.ChevronWatch.markThrough(throughKeys));
+      window.addEventListener('chevron-watch-change', render);
+      render();
+    })();
+  </script>
 </BaseLayout>
 
 <style>
@@ -160,5 +198,13 @@ const spoilerCopy = d.spoilerLevel === 'episode'
   .episode-thread-meta { display: flex; gap: .4rem; align-items: center; white-space: nowrap; }
   .episode-thread-meta span { padding: .2rem .45rem; border: 1px solid var(--line); border-radius: 999px; text-transform: uppercase; font-size: .66rem !important; letter-spacing: .04em; }
   .episode-thread-meta b { color: var(--accent); }
+  .watch-panel { display:grid; gap:.7rem; }
+  .watch-state { color:var(--muted); }
+  .watch-state.is-watched { color:var(--accent); }
+  .watch-actions { display:grid; gap:.5rem; }
+  .watch-action { width:100%; padding:.62rem .7rem; border:1px solid var(--line); border-radius:8px; background:transparent; color:var(--text); cursor:pointer; text-align:left; }
+  .watch-action:hover { border-color:var(--accent-soft); color:var(--accent); }
+  .primary-watch { border-color:var(--accent-soft); }
+  .watch-order-link { margin-top:.15rem; font-size:.78rem; }
   @media (max-width: 650px) { .episode-thread-list a { align-items: flex-start; flex-direction: column; } }
 </style>
