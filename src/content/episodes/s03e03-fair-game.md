@@ -27,6 +27,11 @@ technology:
 arcs:
   - Asgard–Tau'ri alliance
   - Goa'uld System Lords
+connections:
+  - Asgard
+  - Goauld politics
+  - Earth politics
+continuityWeight: mythology
 previouslyRelevant:
   - watchKey: "sg1:2:15"
     reason: "The Asgard identify humanity as a potential Fifth Race, establishing the trust that allows Thor to sponsor Earth here."
