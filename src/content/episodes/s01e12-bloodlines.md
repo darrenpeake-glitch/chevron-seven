@@ -24,7 +24,11 @@ technology:
 arcs:
   - "Jaffa resistance"
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "jaffa-freedom"
+    role: development
+    relevance: primary
+    note: "Bra'tac and Teal'c's family show that resistance has roots inside Jaffa society and carries a real personal cost."
 spoilerLevel: episode
 rewatchRating: 5
 featured: false
