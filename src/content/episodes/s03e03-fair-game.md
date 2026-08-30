@@ -28,6 +28,14 @@ arcs:
   - Asgard–Tau'ri alliance
   - Goa'uld System Lords
 narrativeThreads:
+  - thread: "asgard-tauri-relationship"
+    role: escalation
+    relevance: primary
+    note: "Asgard support becomes formal galactic diplomacy when Earth is admitted to the Protected Planets Treaty."
+  - thread: "goauld-political-order"
+    role: turning-point
+    relevance: primary
+    note: "System Lord politics move from background rivalry into explicit treaty negotiation, exposing both shared rules and deep mutual distrust."
   - thread: "replicator-war"
     role: breadcrumb
     relevance: secondary
