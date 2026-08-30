@@ -22,7 +22,11 @@ technology:
   - "Touchstone"
 arcs:
   - "Rogue NID"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "earth-technological-rise"
+    role: escalation
+    relevance: primary
+    note: "The rogue NID turns Earth's desire for alien technology into an internal political conflict over acquisition, control and acceptable methods."
 spoilerLevel: episode
 rewatchRating: 5
 featured: false
