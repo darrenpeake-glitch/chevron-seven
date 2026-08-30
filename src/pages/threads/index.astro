@@ -1,0 +1,46 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const threads = (await getCollection('threads')).filter((entry) => !entry.data.draft).sort((a, b) => a.data.name.localeCompare(b.data.name));
+const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
+const countFor = (id: string) => episodes.filter((entry) => entry.data.narrativeThreads.some((link) => link.thread === id)).length;
+---
+<BaseLayout title="Narrative Threads · Chevron Seven" description="Follow the storylines that connect significant Stargate episodes across the rewatch.">
+  <section class="thread-hero">
+    <div class="shell">
+      <div class="eyebrow">Long-game narrative</div>
+      <h1 class="episode-title">Narrative Threads</h1>
+      <p class="lede">Focused watch paths containing only episodes that materially build, reveal, escalate or resolve a continuing storyline.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell thread-directory">
+      {threads.map((thread) => (
+        <a class="thread-card" href={`/threads/${thread.id}/`}>
+          <div>
+            <span class="mission-label">{thread.data.scope}</span>
+            <h2>{thread.data.name}</h2>
+            <p>{thread.data.summary}</p>
+          </div>
+          <div class="thread-card-foot">
+            <span>{countFor(thread.id)} relevant {countFor(thread.id) === 1 ? 'mission' : 'missions'}</span>
+            <strong>Open thread →</strong>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .thread-hero { padding: 6.2rem 0 3.5rem; border-bottom: 1px solid var(--line); background: radial-gradient(circle at 80% 20%, rgba(212,167,76,.08), transparent 24rem); }
+  .thread-directory { display: grid; grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); gap: 1rem; }
+  .thread-card { min-height: 270px; padding: 1.5rem; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); text-decoration: none; display: flex; flex-direction: column; transition: transform .15s ease,border-color .15s ease; }
+  .thread-card:hover { transform: translateY(-2px); border-color: var(--accent-soft); }
+  .thread-card h2 { margin: .45rem 0 .75rem; font-size: 1.8rem; }
+  .thread-card p { color: var(--muted); line-height: 1.65; }
+  .thread-card-foot { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 1rem; color: var(--muted); font-size: .82rem; }
+  .thread-card-foot strong { color: var(--accent); }
+</style>
