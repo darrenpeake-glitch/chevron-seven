@@ -26,6 +26,11 @@ technology:
 arcs:
   - Apophis
   - Goa'uld military structure
+connections:
+  - Jaffa
+  - Goauld politics
+  - Character
+continuityWeight: arc
 previouslyRelevant:
   - watchKey: "sg1:1:12"
     reason: "Bloodlines establishes Teal'c's rebellion as something with consequences for Jaffa families and communities, not just one soldier's defection."
