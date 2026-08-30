@@ -26,7 +26,11 @@ technology:
 arcs:
   - Apophis
   - Goa'uld military structure
-narrativeThreads: []
+narrativeThreads:
+  - thread: "jaffa-freedom"
+    role: turning-point
+    relevance: primary
+    note: "The episode shows that freedom from Goa'uld rule requires dismantling indoctrination and inherited military identity, not merely removing the Goa'uld master."
 spoilerLevel: episode
 oneillSarcasm: 7
 tealcEyebrow: moderate
