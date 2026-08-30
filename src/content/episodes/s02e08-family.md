@@ -23,7 +23,11 @@ technology:
 arcs:
   - "Jaffa resistance"
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "jaffa-freedom"
+    role: escalation
+    relevance: primary
+    note: "Apophis's manipulation of Rya'c shows that Jaffa control is social and psychological as well as military."
 spoilerLevel: episode
 rewatchRating: 4
 featured: false
