@@ -24,7 +24,15 @@ technology:
 arcs:
   - "Asgard–Tau'ri relationship"
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "asgard-tauri-relationship"
+    role: reveal
+    relevance: primary
+    note: "Thor and the Asgard become direct actors rather than distant mythology."
+  - thread: "goauld-political-order"
+    role: development
+    relevance: primary
+    note: "Heru'ur's independent campaign reinforces that Goa'uld power is divided among competing rulers."
 spoilerLevel: episode
 rewatchRating: 5
 featured: false
