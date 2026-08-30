@@ -21,7 +21,11 @@ worlds: []
 technology:
   - "Stargate"
 arcs: []
-narrativeThreads: []
+narrativeThreads:
+  - thread: "earth-technological-rise"
+    role: breadcrumb
+    relevance: primary
+    note: "The Tollan force Earth to confront the fact that advanced technology cannot simply be requested or acquired without questions of maturity and responsibility."
 spoilerLevel: episode
 rewatchRating: 4
 featured: false
