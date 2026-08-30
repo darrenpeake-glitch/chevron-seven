@@ -27,6 +27,11 @@ technology:
 arcs:
   - Asgard–Tau'ri alliance
   - Goa'uld System Lords
+previouslyRelevant:
+  - watchKey: "sg1:2:15"
+    reason: "The Asgard identify humanity as a potential Fifth Race, establishing the trust that allows Thor to sponsor Earth here."
+  - watchKey: "sg1:2:18"
+    reason: "Apophis's fall exposes the rivalry and rules between Goa'uld powers that now become explicit diplomatic politics."
 narrativeThreads:
   - thread: "asgard-tauri-relationship"
     role: escalation
