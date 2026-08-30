@@ -26,6 +26,11 @@ arcs:
   - "Asgard–Tau'ri relationship"
   - "Ancient legacy"
   - "Goa'uld conflict"
+connections:
+  - Ancient legacy
+  - Asgard
+  - Technology
+continuityWeight: essential
 previouslyRelevant:
   - watchKey: "sg1:1:11"
     reason: "The alliance of four advanced races is first glimpsed through the meeting-place discovered by Ernest Littlefield."
