@@ -4,12 +4,27 @@ import { getCollection } from 'astro:content';
 import { watchOrder, watchKeyForEpisode, codeForWatchEntry } from '../../lib/watch-order';
 
 const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
-const archivedByKey = new Map(
-  episodes.map((entry) => [
+const films = (await getCollection('films')).filter((entry) => !entry.data.draft);
+const archivedByKey = new Map([
+  ...episodes.map((entry) => [
     watchKeyForEpisode(entry.data.series, entry.data.season, entry.data.episode),
-    entry
+    {
+      href: `/episodes/${entry.id}/`,
+      missionType: entry.data.missionType,
+      rewatchRating: entry.data.rewatchRating,
+      oneillSarcasm: entry.data.oneillSarcasm
+    }
+  ]),
+  ...films.map((entry) => [
+    entry.data.watchKey,
+    {
+      href: `/films/${entry.id}/`,
+      missionType: entry.data.missionType,
+      rewatchRating: entry.data.rewatchRating,
+      oneillSarcasm: entry.data.oneillSarcasm
+    }
   ])
-);
+]);
 
 const logEntries = watchOrder.map((entry, index) => {
   const archive = archivedByKey.get(entry.key);
@@ -17,10 +32,10 @@ const logEntries = watchOrder.map((entry, index) => {
     ...entry,
     index,
     code: codeForWatchEntry(entry),
-    archiveId: archive?.id ?? null,
-    missionType: archive?.data.missionType ?? [],
-    rewatchRating: archive?.data.rewatchRating,
-    oneillSarcasm: archive?.data.oneillSarcasm
+    archiveHref: archive?.href ?? null,
+    missionType: archive?.missionType ?? [],
+    rewatchRating: archive?.rewatchRating,
+    oneillSarcasm: archive?.oneillSarcasm
   };
 });
 
@@ -37,7 +52,7 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
       <div>
         <div class="eyebrow">SGC archive terminal</div>
         <h1 class="episode-title">Mission Log</h1>
-        <p class="lede">Your rewatch history. If it is marked watched in Watch Order, it belongs here — whether or not its full Mission File has been written yet.</p>
+        <p class="lede">Your rewatch history. If it is marked watched in Watch Order, it belongs here — with its Mission File ready when you are.</p>
       </div>
 
       <a class="log-current" id="log-current-card" href="/watch-order">
@@ -52,7 +67,7 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
   <section class="log-summary">
     <div class="shell log-summary-grid">
       <div><span class="mission-label">Watched entries</span><strong id="watched-count">0</strong></div>
-      <div><span class="mission-label">Mission files available</span><strong>{episodes.length}</strong></div>
+      <div><span class="mission-label">Mission files available</span><strong>{episodes.length + films.length}</strong></div>
       <div><span class="mission-label">Canonical position</span><strong id="canonical-position">—</strong></div>
     </div>
   </section>
@@ -88,7 +103,7 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
                     </div>
                     <div class="mission-row-tags">
                       <span>{entry.series}</span>
-                      {entry.archiveId ? (
+                      {entry.archiveHref ? (
                         <>
                           <span class="file-available">Mission file available</span>
                           {entry.missionType.slice(0, 2).map((item) => <span>{item}</span>)}
@@ -102,17 +117,17 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
                     {entry.rewatchRating !== undefined && <span>Rewatch <strong>{entry.rewatchRating}/5</strong></span>}
                     {entry.oneillSarcasm !== undefined && <span>O'Neill <strong>{entry.oneillSarcasm}/10</strong></span>}
                   </div>
-                  <div class="mission-row-arrow">{entry.archiveId ? '→' : '✓'}</div>
+                  <div class="mission-row-arrow">{entry.archiveHref ? '→' : '✓'}</div>
                 </>
               );
 
-              return entry.archiveId ? (
+              return entry.archiveHref ? (
                 <a
                   class="mission-row"
                   data-watch-key={entry.key}
                   data-watch-index={entry.index}
                   data-group-index={groupIndex}
-                  href={`/episodes/${entry.archiveId}/`}
+                  href={entry.archiveHref}
                   hidden
                 >
                   {content}
@@ -141,7 +156,7 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
     series: entry.series,
     code: entry.code,
     title: entry.title,
-    archiveId: entry.archiveId
+    archiveHref: entry.archiveHref
   })))}></script>
   <script is:inline src="/watch-progress.js"></script>
   <script is:inline>
@@ -194,9 +209,9 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
 
         code.textContent = `${current.series} · ${current.code}`;
         title.textContent = current.title;
-        if (current.archiveId) {
+        if (current.archiveHref) {
           action.textContent = 'Open current mission →';
-          card.href = `/episodes/${current.archiveId}/`;
+          card.href = current.archiveHref;
         } else {
           action.textContent = 'Mission file pending · open watch order →';
           card.href = '/watch-order';
