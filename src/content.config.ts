@@ -4,6 +4,11 @@ import { glob } from 'astro/loaders';
 const seriesName = z.enum(['SG-1', 'Atlantis', 'Universe']);
 const threadRole = z.enum(['breadcrumb', 'development', 'escalation', 'reveal', 'turning-point', 'payoff', 'aftermath']);
 const relevance = z.enum(['primary', 'secondary']);
+const episodePoint = z.object({
+  series: seriesName,
+  season: z.number().int().positive(),
+  episode: z.number().int().positive()
+});
 
 const episodes = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/episodes' }),
@@ -32,7 +37,8 @@ const episodes = defineCollection({
     biggerPicture: z.object({
       summary: z.string(),
       threads: z.array(z.string()).default([]),
-      fullContext: z.string().optional()
+      fullContext: z.string().optional(),
+      fullContextUnlock: episodePoint.optional()
     }).optional(),
     oneillSarcasm: z.number().min(0).max(10).optional(),
     tealcEyebrow: z.enum(['none', 'low', 'moderate', 'high', 'legendary']).optional(),
@@ -50,11 +56,12 @@ const lore = defineCollection({
     subtitle: z.string().optional(),
     summary: z.string(),
     spoilerLevel: z.enum(['episode', 'season', 'series']).default('episode'),
-    safeThrough: z.object({
-      series: seriesName,
-      season: z.number().int().positive(),
-      episode: z.number().int().positive()
-    }).optional(),
+    safeThrough: episodePoint.optional(),
+    revelations: z.array(z.object({
+      after: episodePoint,
+      heading: z.string(),
+      text: z.string()
+    })).default([]),
     status: z.string().default('CURATED RECORD'),
     aliases: z.array(z.string()).default([]),
     draft: z.boolean().default(false)
