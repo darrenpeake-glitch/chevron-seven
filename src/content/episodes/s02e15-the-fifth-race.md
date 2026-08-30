@@ -26,6 +26,11 @@ arcs:
   - "Asgard–Tau'ri relationship"
   - "Ancient legacy"
   - "Goa'uld conflict"
+previouslyRelevant:
+  - watchKey: "sg1:1:11"
+    reason: "The alliance of four advanced races is first glimpsed through the meeting-place discovered by Ernest Littlefield."
+  - watchKey: "sg1:2:6"
+    reason: "Thor appears directly and confirms that the Asgard are the advanced culture behind the earlier Norse clues."
 narrativeThreads:
   - thread: "asgard-tauri-relationship"
     role: turning-point
