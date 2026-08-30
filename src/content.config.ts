@@ -16,6 +16,11 @@ const episodes = defineCollection({
     technology: z.array(z.string()).default([]),
     arcs: z.array(z.string()).default([]),
     spoilerLevel: z.enum(['episode', 'season', 'series']).default('episode'),
+    biggerPicture: z.object({
+      summary: z.string(),
+      threads: z.array(z.string()).default([]),
+      fullContext: z.string().optional()
+    }).optional(),
     oneillSarcasm: z.number().min(0).max(10).optional(),
     tealcEyebrow: z.enum(['none', 'low', 'moderate', 'high', 'legendary']).optional(),
     rewatchRating: z.number().min(0).max(5),
