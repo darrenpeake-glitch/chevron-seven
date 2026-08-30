@@ -133,7 +133,7 @@ const clientMilestones = milestones.map((milestone, index) => ({ key: keyFor(mil
 
   <script id="thread-watch-order-data" type="application/json" set:html={JSON.stringify(clientWatchOrder)}></script>
   <script id="thread-milestone-data" type="application/json" set:html={JSON.stringify(clientMilestones)}></script>
-  <script src="/watch-progress.js"></script>
+  <script is:inline src="/watch-progress.js"></script>
   <script is:inline>
     (() => {
       if (!window.ChevronWatch) return;
