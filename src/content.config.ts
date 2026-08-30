@@ -37,6 +37,10 @@ const episodes = defineCollection({
     series: seriesName,
     season: z.number().int().positive(),
     episode: z.number().int().positive(),
+    previouslyRelevant: z.array(z.object({
+      watchKey: z.string(),
+      reason: z.string()
+    })).default([]),
     narrativeThreads: z.array(z.object({
       thread: z.string(),
       role: threadRole,
