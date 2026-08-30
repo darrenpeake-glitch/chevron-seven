@@ -32,6 +32,11 @@ connections:
   - Goauld politics
   - Earth politics
 continuityWeight: mythology
+questions:
+  - question: "What enemy could possibly keep the Asgard so occupied that they cannot simply deal with the Goa'uld?"
+    resolvesAt: "sg1:3:22"
+    answer: "The enemy is the Replicators: self-replicating machines capable of consuming advanced technology and threatening the Asgard despite their enormous technological advantage."
+    note: "Thor deliberately leaves the enemy unnamed, but makes clear that the Asgard consider the conflict more dangerous than the Goa'uld problem."
 previouslyRelevant:
   - watchKey: "sg1:2:15"
     reason: "The Asgard identify humanity as a potential Fifth Race, establishing the trust that allows Thor to sponsor Earth here."
