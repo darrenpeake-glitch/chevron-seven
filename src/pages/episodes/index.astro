@@ -12,7 +12,9 @@ const archivedByKey = new Map([
       href: `/episodes/${entry.id}/`,
       missionType: entry.data.missionType,
       rewatchRating: entry.data.rewatchRating,
-      oneillSarcasm: entry.data.oneillSarcasm
+      oneillSarcasm: entry.data.oneillSarcasm,
+      continuityWeight: entry.data.continuityWeight,
+      connections: entry.data.connections
     }
   ]),
   ...films.map((entry) => [
@@ -21,7 +23,9 @@ const archivedByKey = new Map([
       href: `/films/${entry.id}/`,
       missionType: entry.data.missionType,
       rewatchRating: entry.data.rewatchRating,
-      oneillSarcasm: entry.data.oneillSarcasm
+      oneillSarcasm: entry.data.oneillSarcasm,
+      continuityWeight: entry.data.continuityWeight,
+      connections: entry.data.connections
     }
   ])
 ]);
@@ -35,7 +39,9 @@ const logEntries = watchOrder.map((entry, index) => {
     archiveHref: archive?.href ?? null,
     missionType: archive?.missionType ?? [],
     rewatchRating: archive?.rewatchRating,
-    oneillSarcasm: archive?.oneillSarcasm
+    oneillSarcasm: archive?.oneillSarcasm,
+    continuityWeight: archive?.continuityWeight ?? 'standalone',
+    connections: archive?.connections ?? []
   };
 });
 
@@ -45,6 +51,14 @@ for (const entry of logEntries) {
   groupMap.get(entry.group).push(entry);
 }
 const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, entries }));
+const connectionOptions = Array.from(new Set(logEntries.flatMap((entry) => entry.connections))).sort();
+const weightLabels = {
+  standalone: 'Standalone',
+  character: 'Character',
+  arc: 'Arc',
+  mythology: 'Mythology',
+  essential: 'Essential'
+};
 ---
 <BaseLayout title="Mission Log · Chevron Seven" description="Your Stargate rewatch history, driven by the episodes and films you have marked watched.">
   <section class="log-hero">
@@ -52,7 +66,7 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
       <div>
         <div class="eyebrow">SGC archive terminal</div>
         <h1 class="episode-title">Mission Log</h1>
-        <p class="lede">Your rewatch history. If it is marked watched in Watch Order, it belongs here — with its Mission File ready when you are.</p>
+        <p class="lede">Your rewatch history. Filter the missions you have already seen by continuity significance or the kind of Stargate story you are looking for.</p>
       </div>
 
       <a class="log-current" id="log-current-card" href="/watch-order">
@@ -67,8 +81,32 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
   <section class="log-summary">
     <div class="shell log-summary-grid">
       <div><span class="mission-label">Watched entries</span><strong id="watched-count">0</strong></div>
-      <div><span class="mission-label">Mission files available</span><strong>{episodes.length + films.length}</strong></div>
+      <div><span class="mission-label">Visible after filters</span><strong id="visible-count">0</strong></div>
       <div><span class="mission-label">Canonical position</span><strong id="canonical-position">—</strong></div>
+    </div>
+  </section>
+
+  <section class="log-filter-bar">
+    <div class="shell log-filters">
+      <label>
+        <span>Continuity weight</span>
+        <select id="continuity-filter">
+          <option value="all">All watched missions</option>
+          <option value="essential">Essential</option>
+          <option value="mythology">Mythology</option>
+          <option value="arc">Arc</option>
+          <option value="character">Character</option>
+          <option value="standalone">Standalone</option>
+        </select>
+      </label>
+      <label>
+        <span>Connection</span>
+        <select id="connection-filter">
+          <option value="all">All connections</option>
+          {connectionOptions.map((connection) => <option value={connection}>{connection}</option>)}
+        </select>
+      </label>
+      <button id="clear-filters" type="button">Clear filters</button>
     </div>
   </section>
 
@@ -81,6 +119,12 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
         <a class="button-primary" href="/watch-order">Open Watch Order</a>
       </div>
 
+      <div class="empty-log" id="empty-filter" hidden>
+        <div class="eyebrow">No matching records</div>
+        <h2>Nothing in your watched history matches those filters.</h2>
+        <p>Try another continuity weight or connection type.</p>
+      </div>
+
       {groups.map((group, groupIndex) => (
         <section class="season-block" data-log-group hidden>
           <header class="season-heading">
@@ -88,7 +132,7 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
               <div class="eyebrow">Rewatch record</div>
               <h2>{group.name}</h2>
             </div>
-            <span><strong data-group-count>0</strong> watched</span>
+            <span><strong data-group-count>0</strong> visible</span>
           </header>
 
           <div class="season-list">
@@ -103,14 +147,9 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
                     </div>
                     <div class="mission-row-tags">
                       <span>{entry.series}</span>
-                      {entry.archiveHref ? (
-                        <>
-                          <span class="file-available">Mission file available</span>
-                          {entry.missionType.slice(0, 2).map((item) => <span>{item}</span>)}
-                        </>
-                      ) : (
-                        <span class="file-pending">Mission file pending</span>
-                      )}
+                      <span class={`weight-tag weight-${entry.continuityWeight}`}>{weightLabels[entry.continuityWeight]}</span>
+                      {entry.connections.slice(0, 3).map((item) => <span class="connection-tag">{item}</span>)}
+                      {entry.archiveHref ? <span class="file-available">Mission file available</span> : <span class="file-pending">Mission file pending</span>}
                     </div>
                   </div>
                   <div class="mission-row-metrics">
@@ -121,27 +160,18 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
                 </>
               );
 
+              const attrs = {
+                'data-watch-key': entry.key,
+                'data-watch-index': entry.index,
+                'data-group-index': groupIndex,
+                'data-continuity': entry.continuityWeight,
+                'data-connections': entry.connections.join('|')
+              };
+
               return entry.archiveHref ? (
-                <a
-                  class="mission-row"
-                  data-watch-key={entry.key}
-                  data-watch-index={entry.index}
-                  data-group-index={groupIndex}
-                  href={entry.archiveHref}
-                  hidden
-                >
-                  {content}
-                </a>
+                <a class="mission-row" {...attrs} href={entry.archiveHref} hidden>{content}</a>
               ) : (
-                <div
-                  class="mission-row pending"
-                  data-watch-key={entry.key}
-                  data-watch-index={entry.index}
-                  data-group-index={groupIndex}
-                  hidden
-                >
-                  {content}
-                </div>
+                <div class="mission-row pending" {...attrs} hidden>{content}</div>
               );
             })}
           </div>
@@ -167,17 +197,25 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
       const rows = [...document.querySelectorAll('.mission-row[data-watch-key]')];
       const groups = [...document.querySelectorAll('[data-log-group]')];
       const empty = document.getElementById('empty-log');
+      const emptyFilter = document.getElementById('empty-filter');
       const watchedCount = document.getElementById('watched-count');
+      const visibleCount = document.getElementById('visible-count');
       const canonicalPosition = document.getElementById('canonical-position');
       const card = document.getElementById('log-current-card');
       const code = document.getElementById('log-current-code');
       const title = document.getElementById('log-current-title');
       const action = document.getElementById('log-current-action');
+      const continuityFilter = document.getElementById('continuity-filter');
+      const connectionFilter = document.getElementById('connection-filter');
+      const clearFilters = document.getElementById('clear-filters');
 
       const render = () => {
         const watched = new Set(window.ChevronWatch.load());
         const watchedEntries = entries.filter((entry) => watched.has(entry.key));
         const current = watchedEntries.at(-1);
+        const continuity = continuityFilter.value;
+        const connection = connectionFilter.value;
+        let visible = 0;
 
         watchedCount.textContent = String(watchedEntries.length);
         canonicalPosition.textContent = current ? `${current.index + 1} / ${entries.length}` : '—';
@@ -185,8 +223,13 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
 
         rows.forEach((row) => {
           const isWatched = watched.has(row.dataset.watchKey);
+          const weightMatches = continuity === 'all' || row.dataset.continuity === continuity;
+          const connections = (row.dataset.connections || '').split('|').filter(Boolean);
+          const connectionMatches = connection === 'all' || connections.includes(connection);
+          const show = isWatched && weightMatches && connectionMatches;
           const isCurrent = current?.key === row.dataset.watchKey;
-          row.hidden = !isWatched;
+          row.hidden = !show;
+          if (show) visible += 1;
           row.classList.toggle('is-current', isCurrent);
           const badge = row.querySelector('.current-badge');
           if (badge) badge.hidden = !isCurrent;
@@ -198,6 +241,9 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
           const count = group.querySelector('[data-group-count]');
           if (count) count.textContent = String(visibleRows.length);
         });
+
+        visibleCount.textContent = String(visible);
+        emptyFilter.hidden = watchedEntries.length === 0 || visible > 0;
 
         if (!current) {
           code.textContent = 'Watch progress not set';
@@ -218,72 +264,82 @@ const groups = Array.from(groupMap.entries()).map(([name, entries]) => ({ name, 
         }
       };
 
+      continuityFilter.addEventListener('change', render);
+      connectionFilter.addEventListener('change', render);
+      clearFilters.addEventListener('click', () => {
+        continuityFilter.value = 'all';
+        connectionFilter.value = 'all';
+        render();
+      });
       window.addEventListener('chevron-watch-change', render);
       render();
     })();
   </script>
 
   <style>
-    .log-hero { padding: 5rem 0 3.5rem; border-bottom: 1px solid var(--line); background: radial-gradient(circle at 82% 18%, rgba(212,167,76,.08), transparent 22rem); }
-    .log-hero-grid { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 4rem; align-items: end; }
-    .log-current { text-decoration: none; border: 1px solid var(--line); background: var(--panel); border-radius: 14px; padding: 1.2rem; min-height: 160px; display: grid; align-content: end; gap: .32rem; position: relative; overflow: hidden; }
-    .log-current::before { content: ""; position: absolute; width: 180px; height: 180px; right: -70px; top: -95px; border-radius: 50%; border: 1px solid rgba(212,167,76,.12); }
-    .log-current strong { font-size: 1.05rem; }
-    .log-current > span:nth-of-type(2) { color: var(--muted); }
-    .log-current small { color: var(--accent); margin-top: .6rem; }
-    .log-summary { border-bottom: 1px solid var(--line); background: #0b1013; }
-    .log-summary-grid { display: grid; grid-template-columns: repeat(3,1fr); }
-    .log-summary-grid > div { padding: 1rem 1.2rem; border-right: 1px solid var(--line); display: grid; gap: .25rem; }
-    .log-summary-grid > div:first-child { padding-left: 0; }
-    .log-summary-grid > div:last-child { border-right: 0; }
-    .log-summary-grid strong { font-size: 1.1rem; color: var(--text); }
-    .log-body { padding-top: 3rem; }
-    .empty-log { padding: 2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
-    .empty-log h2 { margin: .35rem 0 .6rem; }
-    .empty-log p { color: var(--muted); max-width: 620px; margin: 0 0 1.2rem; }
-    .season-block + .season-block { margin-top: 4rem; }
-    .season-heading { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
-    .season-heading h2 { margin: .2rem 0 0; }
-    .season-heading > span { color: var(--muted); font-size: .85rem; }
-    .season-heading > span strong { color: var(--text); }
-    .season-list { display: grid; }
-    .mission-row { display: grid; grid-template-columns: 95px minmax(0,1fr) auto 28px; gap: 1.25rem; align-items: center; text-decoration: none; padding: 1.1rem 0; border-bottom: 1px solid rgba(41,53,59,.72); transition: background .15s ease, border-color .15s ease; }
-    a.mission-row:hover { background: rgba(255,255,255,.018); border-color: var(--accent-soft); }
-    .mission-row.pending { cursor: default; }
-    .mission-row.is-current { margin: .45rem 0; padding: 1rem; border: 1px solid rgba(212,167,76,.35); border-radius: 12px; background: rgba(212,167,76,.035); }
-    .mission-row-code { color: var(--accent); font-size: .8rem; font-weight: 800; letter-spacing: .08em; }
-    .mission-row-titleline { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
-    .mission-row h3 { margin: 0; font-size: 1.15rem; }
-    .current-badge { font-size: .66rem; color: #111; background: var(--accent); border-radius: 999px; padding: .24rem .5rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; }
-    .mission-row-tags { display: flex; gap: .45rem; flex-wrap: wrap; margin-top: .4rem; }
-    .mission-row-tags span { color: var(--muted); font-size: .72rem; border: 1px solid var(--line); border-radius: 999px; padding: .2rem .45rem; }
-    .mission-row-tags .file-available { color: var(--accent); border-color: var(--accent-soft); }
-    .mission-row-tags .file-pending { color: var(--muted); border-style: dashed; }
-    .mission-row-metrics { display: flex; gap: 1rem; color: var(--muted); font-size: .75rem; white-space: nowrap; }
-    .mission-row-metrics strong { color: var(--text); }
-    .mission-row-arrow { color: var(--muted); text-align: right; }
-    a.mission-row:hover .mission-row-arrow { color: var(--accent); }
-    [hidden] { display: none !important; }
+    .log-hero { padding:5rem 0 3.5rem; border-bottom:1px solid var(--line); background:radial-gradient(circle at 82% 18%,rgba(212,167,76,.08),transparent 22rem); }
+    .log-hero-grid { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:4rem; align-items:end; }
+    .log-current { text-decoration:none; border:1px solid var(--line); background:var(--panel); border-radius:14px; padding:1.2rem; min-height:160px; display:grid; align-content:end; gap:.32rem; position:relative; overflow:hidden; }
+    .log-current strong { font-size:1.05rem; }
+    .log-current > span:nth-of-type(2) { color:var(--muted); }
+    .log-current small { color:var(--accent); margin-top:.6rem; }
+    .log-summary { border-bottom:1px solid var(--line); background:#0b1013; }
+    .log-summary-grid { display:grid; grid-template-columns:repeat(3,1fr); }
+    .log-summary-grid > div { padding:1rem 1.2rem; border-right:1px solid var(--line); display:grid; gap:.25rem; }
+    .log-summary-grid > div:first-child { padding-left:0; }
+    .log-summary-grid > div:last-child { border-right:0; }
+    .log-summary-grid strong { font-size:1.1rem; color:var(--text); }
+    .log-filter-bar { border-bottom:1px solid var(--line); background:var(--panel); }
+    .log-filters { min-height:76px; display:flex; align-items:end; gap:1rem; padding-top:.8rem; padding-bottom:.8rem; }
+    .log-filters label { display:grid; gap:.3rem; min-width:210px; }
+    .log-filters label span { color:var(--muted); font-size:.68rem; text-transform:uppercase; letter-spacing:.07em; }
+    .log-filters select, .log-filters button { border:1px solid var(--line); border-radius:8px; background:#0b1013; color:var(--text); padding:.58rem .7rem; }
+    .log-filters button { cursor:pointer; color:var(--accent); }
+    .log-body { padding-top:3rem; }
+    .empty-log { padding:2rem; border:1px solid var(--line); border-radius:14px; background:var(--panel); }
+    .empty-log h2 { margin:.35rem 0 .6rem; }
+    .empty-log p { color:var(--muted); max-width:620px; margin:0 0 1.2rem; }
+    .season-block + .season-block { margin-top:4rem; }
+    .season-heading { display:flex; align-items:end; justify-content:space-between; gap:2rem; padding-bottom:1rem; border-bottom:1px solid var(--line); }
+    .season-heading h2 { margin:.2rem 0 0; }
+    .season-heading > span { color:var(--muted); font-size:.85rem; }
+    .season-list { display:grid; }
+    .mission-row { display:grid; grid-template-columns:95px minmax(0,1fr) auto 28px; gap:1.25rem; align-items:center; text-decoration:none; padding:1.1rem 0; border-bottom:1px solid rgba(41,53,59,.72); }
+    a.mission-row:hover { background:rgba(255,255,255,.018); border-color:var(--accent-soft); }
+    .mission-row.is-current { margin:.45rem 0; padding:1rem; border:1px solid rgba(212,167,76,.35); border-radius:12px; background:rgba(212,167,76,.035); }
+    .mission-row-code { color:var(--accent); font-size:.8rem; font-weight:800; letter-spacing:.08em; }
+    .mission-row-titleline { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
+    .mission-row h3 { margin:0; font-size:1.15rem; }
+    .current-badge { font-size:.66rem; color:#111; background:var(--accent); border-radius:999px; padding:.24rem .5rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; }
+    .mission-row-tags { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.4rem; }
+    .mission-row-tags span { color:var(--muted); font-size:.72rem; border:1px solid var(--line); border-radius:999px; padding:.2rem .45rem; }
+    .mission-row-tags .file-available { color:var(--accent); border-color:var(--accent-soft); }
+    .mission-row-tags .file-pending { border-style:dashed; }
+    .mission-row-tags .weight-tag { color:var(--text); text-transform:uppercase; letter-spacing:.04em; }
+    .mission-row-tags .weight-essential, .mission-row-tags .weight-mythology { color:var(--accent); border-color:var(--accent-soft); }
+    .mission-row-metrics { display:flex; gap:1rem; color:var(--muted); font-size:.75rem; white-space:nowrap; }
+    .mission-row-metrics strong { color:var(--text); }
+    .mission-row-arrow { color:var(--muted); text-align:right; }
+    [hidden] { display:none !important; }
 
-    @media (max-width: 800px) {
-      .log-hero-grid { grid-template-columns: 1fr; gap: 2rem; }
-      .log-current { min-height: 130px; }
-      .mission-row { grid-template-columns: 72px minmax(0,1fr) 24px; }
-      .mission-row-metrics { grid-column: 2; margin-top: -.25rem; }
-      .mission-row-arrow { grid-column: 3; grid-row: 1 / span 2; }
+    @media (max-width:800px) {
+      .log-hero-grid { grid-template-columns:1fr; gap:2rem; }
+      .log-current { min-height:130px; }
+      .log-filters { align-items:stretch; flex-direction:column; }
+      .log-filters label { min-width:0; }
+      .mission-row { grid-template-columns:72px minmax(0,1fr) 24px; }
+      .mission-row-metrics { grid-column:2; }
+      .mission-row-arrow { grid-column:3; grid-row:1 / span 2; }
     }
 
-    @media (max-width: 560px) {
-      .log-summary-grid { grid-template-columns: 1fr; }
-      .log-summary-grid > div { border-right: 0; border-bottom: 1px solid var(--line); padding-left: 0; }
-      .log-summary-grid > div:last-child { border-bottom: 0; }
-      .season-heading { align-items: flex-start; flex-direction: column; gap: .5rem; }
-      .mission-row, .mission-row.is-current { grid-template-columns: 1fr 24px; gap: .7rem; padding: 1rem 0; border-radius: 0; border-left: 0; border-right: 0; }
-      .mission-row.is-current { padding: 1rem .75rem; border-left: 1px solid rgba(212,167,76,.35); border-right: 1px solid rgba(212,167,76,.35); border-radius: 10px; }
-      .mission-row-code { grid-column: 1; }
-      .mission-row-copy { grid-column: 1; }
-      .mission-row-metrics { grid-column: 1; }
-      .mission-row-arrow { grid-column: 2; grid-row: 1 / span 3; }
+    @media (max-width:560px) {
+      .log-summary-grid { grid-template-columns:1fr; }
+      .log-summary-grid > div { border-right:0; border-bottom:1px solid var(--line); padding-left:0; }
+      .season-heading { align-items:flex-start; flex-direction:column; gap:.5rem; }
+      .mission-row, .mission-row.is-current { grid-template-columns:1fr 24px; gap:.7rem; padding:1rem 0; }
+      .mission-row.is-current { padding:1rem .75rem; }
+      .mission-row-code, .mission-row-copy, .mission-row-metrics { grid-column:1; }
+      .mission-row-arrow { grid-column:2; grid-row:1 / span 3; }
     }
   </style>
 </BaseLayout>
