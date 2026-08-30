@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCollection, render } from 'astro:content';
+import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
   const threads = (await getCollection('threads')).filter((entry) => !entry.data.draft);
@@ -8,31 +8,54 @@ export async function getStaticPaths() {
 }
 
 const { thread } = Astro.props;
-const { Content } = await render(thread);
-const episodes = (await getCollection('episodes'))
-  .filter((entry) => !entry.data.draft)
-  .filter((entry) => entry.data.narrativeThreads.some((link) => link.thread === thread.id))
-  .sort((a, b) => {
-    if (a.data.series !== b.data.series) return a.data.series.localeCompare(b.data.series);
-    if (a.data.season !== b.data.season) return a.data.season - b.data.season;
-    return a.data.episode - b.data.episode;
-  });
+const allEpisodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
+const scopeEpisodes = thread.data.scope === 'Franchise'
+  ? allEpisodes
+  : allEpisodes.filter((entry) => entry.data.series === thread.data.scope);
+const currentEpisode = [...scopeEpisodes].sort((a, b) => {
+  if (a.data.season !== b.data.season) return a.data.season - b.data.season;
+  return a.data.episode - b.data.episode;
+}).at(-1);
 
-const episodeCode = (entry) => `S${String(entry.data.season).padStart(2,'0')}E${String(entry.data.episode).padStart(2,'0')}`;
+const milestones = thread.data.milestones;
+const isVisibleAtCurrentPosition = (milestone) => {
+  if (!currentEpisode) return false;
+  if (milestone.series !== currentEpisode.data.series) return false;
+  if (milestone.season < currentEpisode.data.season) return true;
+  if (milestone.season > currentEpisode.data.season) return false;
+  return milestone.episode <= currentEpisode.data.episode;
+};
+const visibleMilestones = milestones.filter(isVisibleAtCurrentPosition);
+const futureMilestones = milestones.length - visibleMilestones.length;
+const archivedEpisodeFor = (milestone) => allEpisodes.find((entry) =>
+  entry.data.series === milestone.series &&
+  entry.data.season === milestone.season &&
+  entry.data.episode === milestone.episode
+);
+const codeFor = (milestone) => `S${String(milestone.season).padStart(2,'0')}E${String(milestone.episode).padStart(2,'0')}`;
+const currentCode = currentEpisode ? `S${String(currentEpisode.data.season).padStart(2,'0')}E${String(currentEpisode.data.episode).padStart(2,'0')}` : null;
 ---
 <BaseLayout title={`${thread.data.name} · Narrative Thread · Chevron Seven`} description={thread.data.summary}>
   <section class="thread-hero">
     <div class="shell thread-hero-grid">
       <div>
-        <div class="eyebrow">Narrative thread · {thread.data.scope}</div>
+        <div class="eyebrow">Long-game narrative · {thread.data.scope}</div>
         <h1 class="episode-title">{thread.data.name}</h1>
         <p class="lede">{thread.data.summary}</p>
       </div>
       <aside class="thread-status">
-        <span class="mission-label">Thread status</span>
-        <strong>{thread.data.status}</strong>
-        <span>{episodes.length} relevant {episodes.length === 1 ? 'mission' : 'missions'}</span>
+        <span class="mission-label">At your rewatch position</span>
+        <strong>{futureMilestones > 0 ? 'THREAD UNRESOLVED' : 'THREAD COMPLETE'}</strong>
+        {currentEpisode && <span>{currentEpisode.data.series} · {currentCode} · {currentEpisode.data.title}</span>}
       </aside>
+    </div>
+  </section>
+
+  <section class="mission-bar">
+    <div class="shell mission-bar-inner">
+      <div><span class="mission-label">Visible milestones</span><strong>{visibleMilestones.length}</strong></div>
+      <div><span class="mission-label">Full thread</span><strong>{milestones.length} milestones</strong></div>
+      <div><span class="mission-label">Later milestones hidden</span><strong>{futureMilestones}</strong></div>
     </div>
   </section>
 
@@ -40,35 +63,82 @@ const episodeCode = (entry) => `S${String(entry.data.season).padStart(2,'0')}E${
     <div class="shell thread-layout">
       <main>
         <div class="section-heading">
-          <div><div class="eyebrow">Story path</div><h2>Relevant episodes</h2></div>
+          <div><div class="eyebrow">First-watch reading</div><h2>Narrative path</h2></div>
           <a class="text-link" href="/threads/">← All threads</a>
         </div>
+        <p class="thread-intro">Only what has become meaningful by the current Mission Log position is shown here. Later connections remain hidden until you deliberately open the full rewatch path.</p>
 
         <div class="thread-path">
-          {episodes.map((entry, index) => {
-            const link = entry.data.narrativeThreads.find((item) => item.thread === thread.id);
-            return (
-              <a class="thread-step" href={`/episodes/${entry.id}/`}>
+          {visibleMilestones.map((milestone, index) => {
+            const archived = archivedEpisodeFor(milestone);
+            const stepContent = (
+              <>
                 <div class="thread-step-marker"><span>{String(index + 1).padStart(2,'0')}</span></div>
                 <div class="thread-step-main">
                   <div class="thread-step-meta">
-                    <span>{entry.data.series} · {episodeCode(entry)}</span>
-                    <span class={`thread-role role-${link?.role}`}>{link?.role.replace('-', ' ')}</span>
-                    <span class={`thread-relevance relevance-${link?.relevance}`}>{link?.relevance}</span>
+                    <span>{milestone.series} · {codeFor(milestone)}</span>
+                    <span class={`thread-role role-${milestone.role}`}>{milestone.role.replace('-', ' ')}</span>
+                    <span class={`thread-relevance relevance-${milestone.relevance}`}>{milestone.relevance}</span>
                   </div>
-                  <h3>{entry.data.title}</h3>
-                  {link?.note && <p>{link.note}</p>}
+                  <h3>{milestone.title}</h3>
+                  <p>{milestone.firstWatch}</p>
                 </div>
-              </a>
+              </>
             );
+            return archived
+              ? <a class="thread-step" href={`/episodes/${archived.id}/`}>{stepContent}</a>
+              : <div class="thread-step">{stepContent}</div>;
           })}
         </div>
+
+        {futureMilestones > 0 && (
+          <div class="thread-horizon">
+            <div class="eyebrow">Current horizon</div>
+            <strong>The thread remains unresolved.</strong>
+            <p>{futureMilestones} later milestone{futureMilestones === 1 ? '' : 's'} exist beyond the current rewatch position. Their identities and consequences are hidden below.</p>
+          </div>
+        )}
+
+        <details class="full-thread">
+          <summary>
+            <span>Full rewatch path</span>
+            <strong>Reveal later spoilers →</strong>
+          </summary>
+          <div class="full-thread-warning">Full-series spoilers for this narrative thread begin below.</div>
+          <div class="thread-path full-thread-path">
+            {milestones.map((milestone, index) => {
+              const archived = archivedEpisodeFor(milestone);
+              const stepContent = (
+                <>
+                  <div class="thread-step-marker"><span>{String(index + 1).padStart(2,'0')}</span></div>
+                  <div class="thread-step-main">
+                    <div class="thread-step-meta">
+                      <span>{milestone.series} · {codeFor(milestone)}</span>
+                      <span class={`thread-role role-${milestone.role}`}>{milestone.role.replace('-', ' ')}</span>
+                      <span class={`thread-relevance relevance-${milestone.relevance}`}>{milestone.relevance}</span>
+                    </div>
+                    <h3>{milestone.title}</h3>
+                    <p>{milestone.rewatch ?? milestone.firstWatch}</p>
+                  </div>
+                </>
+              );
+              return archived
+                ? <a class="thread-step" href={`/episodes/${archived.id}/`}>{stepContent}</a>
+                : <div class="thread-step thread-step-future">{stepContent}</div>;
+            })}
+          </div>
+        </details>
       </main>
 
       <aside class="thread-sidebar">
         <div class="sidebar-panel">
-          <div class="eyebrow">Thread rules</div>
-          <p>Only episodes that materially contribute to this storyline appear here. A character, faction or technology merely appearing is not enough.</p>
+          <div class="eyebrow">Current position</div>
+          {currentEpisode ? (
+            <div class="thread-current">
+              <strong>{currentEpisode.data.series} · {currentCode}</strong>
+              <span>{currentEpisode.data.title}</span>
+            </div>
+          ) : <p>No mission records loaded for this scope.</p>}
         </div>
         <div class="sidebar-panel">
           <div class="eyebrow">Role key</div>
@@ -79,37 +149,46 @@ const episodeCode = (entry) => `S${String(entry.data.season).padStart(2,'0')}E${
       </aside>
     </div>
   </section>
-
-  <section class="section thread-briefing-section">
-    <div class="shell thread-briefing mission-article"><Content /></div>
-  </section>
 </BaseLayout>
 
 <style>
   .thread-hero { padding: 6.2rem 0 3.5rem; border-bottom: 1px solid var(--line); background: radial-gradient(circle at 82% 15%, rgba(212,167,76,.08), transparent 25rem); }
-  .thread-hero-grid { display: grid; grid-template-columns: minmax(0,1fr) 260px; gap: 3rem; align-items: end; }
-  .thread-status { padding: 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); display: grid; gap: .45rem; }
-  .thread-status strong { color: var(--accent); }
-  .thread-status > span:last-child { color: var(--muted); font-size: .82rem; }
-  .thread-layout { display: grid; grid-template-columns: minmax(0,1fr) 280px; gap: 2rem; align-items: start; }
-  .thread-path { display: grid; }
-  .thread-step { display: grid; grid-template-columns: 58px minmax(0,1fr); gap: 1rem; padding: 1.3rem 0; border-bottom: 1px solid var(--line); text-decoration: none; }
-  .thread-step-marker { position: relative; display: grid; place-items: start center; }
-  .thread-step-marker::after { content:""; position:absolute; top: 30px; bottom: -1.3rem; width:1px; background: var(--line); }
+  .thread-hero-grid { display:grid; grid-template-columns:minmax(0,1fr) 290px; gap:3rem; align-items:end; }
+  .thread-status { padding:1.2rem; border:1px solid var(--line); border-radius:14px; background:var(--panel); display:grid; gap:.45rem; }
+  .thread-status strong { color:var(--accent); }
+  .thread-status > span:last-child { color:var(--muted); font-size:.82rem; line-height:1.45; }
+  .thread-layout { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:2rem; align-items:start; }
+  .thread-intro { color:var(--muted); line-height:1.7; max-width:68ch; margin:-.25rem 0 1rem; }
+  .thread-path { display:grid; }
+  .thread-step { display:grid; grid-template-columns:58px minmax(0,1fr); gap:1rem; padding:1.35rem 0; border-bottom:1px solid var(--line); text-decoration:none; }
+  .thread-step-marker { position:relative; display:grid; place-items:start center; }
+  .thread-step-marker::after { content:""; position:absolute; top:30px; bottom:-1.35rem; width:1px; background:var(--line); }
   .thread-step:last-child .thread-step-marker::after { display:none; }
-  .thread-step-marker span { width: 34px; height: 34px; border: 1px solid var(--accent-soft); border-radius: 50%; display:grid; place-items:center; color: var(--accent); font-size:.72rem; font-weight:800; background:var(--bg); z-index:1; }
-  .thread-step-main h3 { margin:.4rem 0 .35rem; font-size:1.2rem; }
-  .thread-step-main p { margin:.3rem 0 0; color:var(--muted); line-height:1.55; }
-  .thread-step:hover h3 { color:var(--accent); }
+  .thread-step-marker span { width:34px; height:34px; border:1px solid var(--accent-soft); border-radius:50%; display:grid; place-items:center; color:var(--accent); font-size:.72rem; font-weight:800; background:var(--bg); z-index:1; }
+  .thread-step-main h3 { margin:.42rem 0 .38rem; font-size:1.22rem; }
+  .thread-step-main p { margin:.3rem 0 0; color:var(--muted); line-height:1.62; max-width:68ch; }
+  a.thread-step:hover h3 { color:var(--accent); }
   .thread-step-meta { display:flex; flex-wrap:wrap; gap:.45rem; align-items:center; color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
   .thread-role,.thread-relevance { padding:.2rem .45rem; border:1px solid var(--line); border-radius:999px; }
   .thread-role { color:var(--accent); }
   .relevance-primary { color:var(--text); }
+  .thread-horizon { margin:1.7rem 0 0; padding:1.25rem 1.35rem; border:1px solid var(--accent-soft); border-radius:12px; background:rgba(212,167,76,.055); }
+  .thread-horizon strong { display:block; margin:.35rem 0; font-size:1.15rem; }
+  .thread-horizon p { margin:.3rem 0 0; color:var(--muted); line-height:1.55; }
+  .full-thread { margin-top:1.6rem; border:1px solid var(--line); border-radius:14px; background:var(--panel); overflow:hidden; }
+  .full-thread > summary { cursor:pointer; list-style:none; display:flex; justify-content:space-between; gap:1rem; padding:1.15rem 1.3rem; align-items:center; }
+  .full-thread > summary::-webkit-details-marker { display:none; }
+  .full-thread > summary span { font-weight:800; }
+  .full-thread > summary strong { color:var(--accent); font-size:.82rem; }
+  .full-thread[open] > summary { border-bottom:1px solid var(--line); }
+  .full-thread-warning { padding:.85rem 1.3rem; color:var(--accent); font-size:.78rem; border-bottom:1px solid var(--line); background:rgba(212,167,76,.045); }
+  .full-thread-path { padding:0 1.3rem 1rem; }
+  .thread-step-future { opacity:.92; }
   .thread-sidebar { position:sticky; top:96px; display:grid; gap:1rem; }
-  .thread-sidebar p { color:var(--muted); line-height:1.55; font-size:.88rem; }
+  .thread-current { display:grid; gap:.25rem; margin-top:.7rem; }
+  .thread-current strong { color:var(--accent); }
+  .thread-current span { color:var(--muted); }
   .role-key { display:flex; flex-wrap:wrap; gap:.45rem; margin-top:.8rem; }
   .role-key span { padding:.25rem .5rem; border:1px solid var(--line); border-radius:999px; color:var(--muted); font-size:.72rem; }
-  .thread-briefing-section { padding-top:0; }
-  .thread-briefing { max-width:780px; margin-left:auto; margin-right:auto; }
-  @media (max-width: 760px) { .thread-hero-grid,.thread-layout { grid-template-columns:1fr; } .thread-sidebar { position:static; } }
+  @media (max-width:760px) { .thread-hero-grid,.thread-layout { grid-template-columns:1fr; } .thread-sidebar { position:static; } .full-thread > summary { align-items:flex-start; flex-direction:column; } }
 </style>
