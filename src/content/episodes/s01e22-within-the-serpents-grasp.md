@@ -23,6 +23,11 @@ technology:
   - "Stargate"
 arcs:
   - "Goa'uld conflict"
+connections:
+  - Goauld politics
+  - Ship episode
+  - Earth politics
+continuityWeight: essential
 previouslyRelevant:
   - watchKey: "sg1:1:21"
     reason: "The political decision to shut down the Stargate programme leaves SG-1 with no official route to act when Daniel's warning of an incoming Goa'uld attack proves urgent."
