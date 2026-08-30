@@ -4,6 +4,7 @@ import '../styles/archive.css';
 import '../styles/lore.css';
 import '../styles/bigger-picture.css';
 import '../styles/brand.css';
+import '../styles/progressive-disclosure.css';
 
 interface Props {
   title?: string;
@@ -45,6 +46,9 @@ const {
     </header>
 
     <main><slot /></main>
+
+    <script is:inline src="/watch-progress.js"></script>
+    <script is:inline src="/progressive-disclosure.js"></script>
 
     <footer class="footer">
       <div class="shell">
