@@ -1,0 +1,140 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+import { watchOrder, watchOrderIndex } from '../../lib/watch-order';
+
+export async function getStaticPaths() {
+  const films = (await getCollection('films')).filter((entry) => !entry.data.draft);
+  return films.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const watchIndex = watchOrderIndex.get(d.watchKey);
+const throughKeys = watchIndex === undefined ? [d.watchKey] : watchOrder.slice(0, watchIndex + 1).map((item) => item.key);
+---
+<BaseLayout title={`${d.title} · Chevron Seven`} description={`${d.title} — Chevron Seven feature-film Mission File.`}>
+  <section class="mission-hero">
+    <div class="shell mission-hero-grid">
+      <div>
+        <div class="mission-kicker"><span>MISSION FILE</span><span>FEATURE FILM</span><span>FEATURE</span></div>
+        <h1 class="episode-title">{d.title}</h1>
+        <div class="pills mission-types">{d.missionType.map((item) => <span class="pill">{item}</span>)}</div>
+      </div>
+      <aside class="mission-status" aria-label="Mission status">
+        <div class="mission-code">FEATURE</div>
+        <div class="eyebrow">Archive status</div>
+        <strong>FILE OPEN</strong>
+        <span>{d.franchisePosition ?? 'Stargate feature film'}</span>
+      </aside>
+    </div>
+  </section>
+
+  <section class="mission-bar">
+    <div class="shell mission-bar-inner">
+      <div><span class="mission-label">Spoiler boundary</span><strong>Safe after completing this film.</strong></div>
+      <div><span class="mission-label">Archive scope</span><strong>feature</strong></div>
+      <div><span class="mission-label">Record</span><strong>Film / FEATURE</strong></div>
+    </div>
+  </section>
+
+  <section class="section mission-body-section">
+    <div class="shell mission-layout">
+      <main class="mission-main">
+        <section class="episode-reading briefing-panel" data-watch-when="unwatched">
+          <div class="eyebrow">Before you watch · spoiler-safe</div>
+          <h2>Mission Briefing</h2>
+          <p>{d.briefing}</p>
+          <div class="briefing-lock">Full debrief and continuity significance unlock when this film is marked watched.</div>
+        </section>
+
+        <div data-watch-when="watched" hidden>
+          <section class="episode-reading debrief-panel">
+            <div class="eyebrow">After-action record</div>
+            <h2>Mission Debrief</h2>
+            <p>{d.debrief}</p>
+            <div class="why-it-matters">
+              <div class="eyebrow">Continuity significance</div>
+              <h3>Why It Matters</h3>
+              <p>{d.whyItMatters}</p>
+            </div>
+          </section>
+          <article class="mission-article"><Content /></article>
+        </div>
+      </main>
+
+      <aside class="mission-sidebar">
+        <div class="sidebar-panel watch-panel" data-watch-key={d.watchKey}>
+          <div class="eyebrow">Your watch progress</div>
+          <strong class="watch-state" id="mission-watch-state">Not marked watched</strong>
+          <div class="watch-actions">
+            <button class="watch-action primary-watch" id="mission-watch-toggle" type="button">Mark watched</button>
+            <button class="watch-action" id="mission-watch-through" type="button">Mark watched through here</button>
+          </div>
+          <a class="text-link watch-order-link" href="/watch-order">Open full watch order →</a>
+        </div>
+
+        <div data-watch-when="watched" hidden>
+          <div class="sidebar-panel gated-sidebar-panel">
+            <div class="eyebrow">Chevron Seven metrics</div>
+            <div class="metric-list">
+              <div class="metric-row"><span>Rewatch rating</span><strong>{d.rewatchRating}/5</strong></div>
+              {d.oneillSarcasm !== undefined && <div class="metric-row"><span>O'Neill sarcasm</span><strong>{d.oneillSarcasm}/10</strong></div>}
+              {d.tealcEyebrow && <div class="metric-row"><span>Teal'c eyebrow</span><strong class="capitalize">{d.tealcEyebrow}</strong></div>}
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <script id="mission-through-keys" type="application/json" set:html={JSON.stringify(throughKeys)}></script>
+  <script is:inline src="/watch-progress.js"></script>
+  <script is:inline>
+    (() => {
+      const panel = document.querySelector('.watch-panel');
+      if (!panel || !window.ChevronWatch) return;
+      const key = panel.dataset.watchKey;
+      const throughKeys = JSON.parse(document.getElementById('mission-through-keys').textContent || '[]');
+      const state = document.getElementById('mission-watch-state');
+      const toggle = document.getElementById('mission-watch-toggle');
+      const through = document.getElementById('mission-watch-through');
+      const watchedContent = [...document.querySelectorAll('[data-watch-when="watched"]')];
+      const unwatchedContent = [...document.querySelectorAll('[data-watch-when="unwatched"]')];
+      const render = () => {
+        const isWatched = window.ChevronWatch.watched(key);
+        state.textContent = isWatched ? 'Watched ✓' : 'Not marked watched';
+        state.classList.toggle('is-watched', isWatched);
+        toggle.textContent = isWatched ? 'Mark unwatched' : 'Mark watched';
+        watchedContent.forEach((node) => { node.hidden = !isWatched; });
+        unwatchedContent.forEach((node) => { node.hidden = isWatched; });
+      };
+      toggle.addEventListener('click', () => window.ChevronWatch.mark(key, !window.ChevronWatch.watched(key)));
+      through.addEventListener('click', () => window.ChevronWatch.markThrough(throughKeys));
+      window.addEventListener('chevron-watch-change', render);
+      render();
+    })();
+  </script>
+
+  <style>
+    .episode-reading { margin:0 0 1.4rem; padding:1.45rem; border:1px solid var(--line); border-radius:14px; background:rgba(17,23,27,.72); }
+    .episode-reading h2 { margin:.35rem 0 .8rem; }
+    .episode-reading > p { margin:0; color:var(--text); line-height:1.75; }
+    .briefing-panel { border-color:var(--accent-soft); background:rgba(212,167,76,.045); }
+    .briefing-lock { margin-top:1.1rem; padding-top:1rem; border-top:1px solid var(--line); color:var(--muted); font-size:.82rem; line-height:1.55; }
+    .why-it-matters { margin-top:1.4rem; padding-top:1.25rem; border-top:1px solid var(--line); }
+    .why-it-matters h3 { margin:.35rem 0 .55rem; font-size:1.35rem; }
+    .why-it-matters p { margin:0; color:var(--muted); line-height:1.72; }
+    .watch-panel { display:grid; gap:.7rem; }
+    .watch-state { color:var(--muted); }
+    .watch-state.is-watched { color:var(--accent); }
+    .watch-actions { display:grid; gap:.5rem; }
+    .watch-action { width:100%; padding:.62rem .7rem; border:1px solid var(--line); border-radius:8px; background:transparent; color:var(--text); cursor:pointer; text-align:left; }
+    .watch-action:hover { border-color:var(--accent-soft); color:var(--accent); }
+    .primary-watch { border-color:var(--accent-soft); }
+    .watch-order-link { margin-top:.15rem; font-size:.78rem; }
+    .gated-sidebar-panel { margin-top:1rem; }
+    [hidden] { display:none !important; }
+  </style>
+</BaseLayout>
