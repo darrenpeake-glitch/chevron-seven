@@ -27,7 +27,11 @@ technology:
   - Nanites
 arcs:
   - Tau'ri technological development
-narrativeThreads: []
+narrativeThreads:
+  - thread: "earth-technological-rise"
+    role: development
+    relevance: primary
+    note: "The Orbanian exchange shows Earth beginning to turn off-world knowledge into practical technological progress through cooperation rather than theft."
 spoilerLevel: episode
 oneillSarcasm: 6
 tealcEyebrow: low
