@@ -24,7 +24,11 @@ technology:
 arcs:
   - "Tok'ra alliance"
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "tokra-alliance"
+    role: breadcrumb
+    relevance: primary
+    note: "Jolinar reveals that a symbiote resistance exists inside Goa'uld civilization, giving Earth its first glimpse of a possible internal ally."
 spoilerLevel: episode
 rewatchRating: 5
 featured: false
