@@ -74,53 +74,74 @@ const spoilerCopy = d.spoilerLevel === 'episode'
   <section class="section mission-body-section">
     <div class="shell mission-layout">
       <main class="mission-main">
-        {d.biggerPicture && (
-          <section class="bigger-picture" aria-labelledby="bigger-picture-title">
-            <div class="bigger-picture-head">
-              <div>
-                <div class="eyebrow">Franchise significance</div>
-                <h2 id="bigger-picture-title">Bigger Picture</h2>
-              </div>
-              <span class="bigger-picture-badge">THREAD ACTIVE</span>
-            </div>
-            <p>{d.biggerPicture.summary}</p>
-            {d.biggerPicture.threads.length > 0 && (
-              <div class="bigger-picture-threads">
-                {d.biggerPicture.threads.map((thread) => <span>{thread}</span>)}
-              </div>
-            )}
-            {d.biggerPicture.fullContext && (
-              <details class="bigger-picture-full">
-                <summary>Full franchise context — later spoilers</summary>
-                <p>{d.biggerPicture.fullContext}</p>
-              </details>
-            )}
-          </section>
-        )}
+        <section class="episode-reading briefing-panel" data-watch-when="unwatched">
+          <div class="eyebrow">Before you watch · spoiler-safe</div>
+          <h2>Mission Briefing</h2>
+          <p>{d.briefing}</p>
+          <div class="briefing-lock">Full debrief, significance and narrative connections unlock when this episode is marked watched.</div>
+        </section>
 
-        {d.narrativeThreads.length > 0 && (
-          <section class="episode-thread-links" aria-labelledby="episode-thread-title">
-            <div class="eyebrow">Long-game narrative</div>
-            <h2 id="episode-thread-title">Narrative Threads</h2>
-            <div class="episode-thread-list">
-              {d.narrativeThreads.map((link) => (
-                <a href={`/threads/${link.thread}/`}>
-                  <div>
-                    <strong>{threadName(link.thread)}</strong>
-                    {link.note && <span>{link.note}</span>}
-                  </div>
-                  <div class="episode-thread-meta">
-                    <span>{link.role.replace('-', ' ')}</span>
-                    <span>{link.relevance}</span>
-                    <b>→</b>
-                  </div>
-                </a>
-              ))}
+        <div data-watch-when="watched" hidden>
+          <section class="episode-reading debrief-panel">
+            <div class="eyebrow">After-action record</div>
+            <h2>Mission Debrief</h2>
+            <p>{d.debrief}</p>
+
+            <div class="why-it-matters">
+              <div class="eyebrow">Continuity significance</div>
+              <h3>Why It Matters</h3>
+              <p>{d.whyItMatters}</p>
             </div>
           </section>
-        )}
 
-        <article class="mission-article"><Content /></article>
+          {d.biggerPicture && (
+            <section class="bigger-picture" aria-labelledby="bigger-picture-title">
+              <div class="bigger-picture-head">
+                <div>
+                  <div class="eyebrow">Franchise significance</div>
+                  <h2 id="bigger-picture-title">Bigger Picture</h2>
+                </div>
+                <span class="bigger-picture-badge">THREAD ACTIVE</span>
+              </div>
+              <p>{d.biggerPicture.summary}</p>
+              {d.biggerPicture.threads.length > 0 && (
+                <div class="bigger-picture-threads">
+                  {d.biggerPicture.threads.map((thread) => <span>{thread}</span>)}
+                </div>
+              )}
+              {d.biggerPicture.fullContext && (
+                <details class="bigger-picture-full">
+                  <summary>Full franchise context — later spoilers</summary>
+                  <p>{d.biggerPicture.fullContext}</p>
+                </details>
+              )}
+            </section>
+          )}
+
+          {d.narrativeThreads.length > 0 && (
+            <section class="episode-thread-links" aria-labelledby="episode-thread-title">
+              <div class="eyebrow">Long-game narrative</div>
+              <h2 id="episode-thread-title">Narrative Threads</h2>
+              <div class="episode-thread-list">
+                {d.narrativeThreads.map((link) => (
+                  <a href={`/threads/${link.thread}/`}>
+                    <div>
+                      <strong>{threadName(link.thread)}</strong>
+                      {link.note && <span>{link.note}</span>}
+                    </div>
+                    <div class="episode-thread-meta">
+                      <span>{link.role.replace('-', ' ')}</span>
+                      <span>{link.relevance}</span>
+                      <b>→</b>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <article class="mission-article"><Content /></article>
+        </div>
       </main>
 
       <aside class="mission-sidebar">
@@ -134,22 +155,24 @@ const spoilerCopy = d.spoilerLevel === 'episode'
           <a class="text-link watch-order-link" href="/watch-order">Open full watch order →</a>
         </div>
 
-        <div class="sidebar-panel">
-          <div class="eyebrow">Chevron Seven metrics</div>
-          <div class="metric-list">
-            <div class="metric-row"><span>Rewatch rating</span><strong>{d.rewatchRating}/5</strong></div>
-            {d.oneillSarcasm !== undefined && <div class="metric-row"><span>O'Neill sarcasm</span><strong>{d.oneillSarcasm}/10</strong></div>}
-            {d.tealcEyebrow && <div class="metric-row"><span>Teal'c eyebrow</span><strong class="capitalize">{d.tealcEyebrow}</strong></div>}
+        <div data-watch-when="watched" hidden>
+          <div class="sidebar-panel gated-sidebar-panel">
+            <div class="eyebrow">Chevron Seven metrics</div>
+            <div class="metric-list">
+              <div class="metric-row"><span>Rewatch rating</span><strong>{d.rewatchRating}/5</strong></div>
+              {d.oneillSarcasm !== undefined && <div class="metric-row"><span>O'Neill sarcasm</span><strong>{d.oneillSarcasm}/10</strong></div>}
+              {d.tealcEyebrow && <div class="metric-row"><span>Teal'c eyebrow</span><strong class="capitalize">{d.tealcEyebrow}</strong></div>}
+            </div>
           </div>
-        </div>
 
-        <div class="sidebar-panel">
-          <div class="eyebrow">Archive links</div>
-          {d.characters.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/personnel/">Personnel</a><div class="archive-list">{d.characters.map((x) => <a href={`/archive/personnel/${slugify(x)}/`}>{x}</a>)}</div></div>}
-          {d.factions.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/factions/">Factions</a><div class="archive-list">{d.factions.map((x) => <a href={`/archive/factions/${slugify(x)}/`}>{x}</a>)}</div></div>}
-          {d.worlds.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/worlds/">Worlds</a><div class="archive-list">{d.worlds.map((x) => <a href={`/archive/worlds/${slugify(x)}/`}>{x}</a>)}</div></div>}
-          {d.technology.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/technology/">Technology</a><div class="archive-list">{d.technology.map((x) => <a href={`/archive/technology/${slugify(x)}/`}>{x}</a>)}</div></div>}
-          {d.arcs.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/arcs/">Story arcs</a><div class="archive-list">{d.arcs.map((x) => <a href={`/archive/arcs/${slugify(x)}/`}>{x}</a>)}</div></div>}
+          <div class="sidebar-panel gated-sidebar-panel">
+            <div class="eyebrow">Archive links</div>
+            {d.characters.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/personnel/">Personnel</a><div class="archive-list">{d.characters.map((x) => <a href={`/archive/personnel/${slugify(x)}/`}>{x}</a>)}</div></div>}
+            {d.factions.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/factions/">Factions</a><div class="archive-list">{d.factions.map((x) => <a href={`/archive/factions/${slugify(x)}/`}>{x}</a>)}</div></div>}
+            {d.worlds.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/worlds/">Worlds</a><div class="archive-list">{d.worlds.map((x) => <a href={`/archive/worlds/${slugify(x)}/`}>{x}</a>)}</div></div>}
+            {d.technology.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/technology/">Technology</a><div class="archive-list">{d.technology.map((x) => <a href={`/archive/technology/${slugify(x)}/`}>{x}</a>)}</div></div>}
+            {d.arcs.length > 0 && <div class="archive-group"><a class="mission-label archive-group-link" href="/archive/arcs/">Story arcs</a><div class="archive-list">{d.arcs.map((x) => <a href={`/archive/arcs/${slugify(x)}/`}>{x}</a>)}</div></div>}
+          </div>
         </div>
       </aside>
     </div>
@@ -173,11 +196,15 @@ const spoilerCopy = d.spoilerLevel === 'episode'
       const state = document.getElementById('mission-watch-state');
       const toggle = document.getElementById('mission-watch-toggle');
       const through = document.getElementById('mission-watch-through');
+      const watchedContent = [...document.querySelectorAll('[data-watch-when="watched"]')];
+      const unwatchedContent = [...document.querySelectorAll('[data-watch-when="unwatched"]')];
       const render = () => {
         const isWatched = window.ChevronWatch.watched(key);
         state.textContent = isWatched ? 'Watched ✓' : 'Not marked watched';
         state.classList.toggle('is-watched', isWatched);
         toggle.textContent = isWatched ? 'Mark unwatched' : 'Mark watched';
+        watchedContent.forEach((node) => { node.hidden = !isWatched; });
+        unwatchedContent.forEach((node) => { node.hidden = isWatched; });
       };
       toggle.addEventListener('click', () => window.ChevronWatch.mark(key, !window.ChevronWatch.watched(key)));
       through.addEventListener('click', () => window.ChevronWatch.markThrough(throughKeys));
@@ -188,6 +215,15 @@ const spoilerCopy = d.spoilerLevel === 'episode'
 </BaseLayout>
 
 <style>
+  .episode-reading { margin:0 0 1.4rem; padding:1.45rem; border:1px solid var(--line); border-radius:14px; background:rgba(17,23,27,.72); }
+  .episode-reading h2 { margin:.35rem 0 .8rem; }
+  .episode-reading > p { margin:0; color:var(--text); line-height:1.75; font-size:1rem; }
+  .briefing-panel { border-color:var(--accent-soft); background:rgba(212,167,76,.045); }
+  .briefing-lock { margin-top:1.1rem; padding-top:1rem; border-top:1px solid var(--line); color:var(--muted); font-size:.82rem; line-height:1.55; }
+  .debrief-panel { background:linear-gradient(180deg,rgba(17,23,27,.88),rgba(17,23,27,.65)); }
+  .why-it-matters { margin-top:1.4rem; padding-top:1.25rem; border-top:1px solid var(--line); }
+  .why-it-matters h3 { margin:.35rem 0 .55rem; font-size:1.35rem; }
+  .why-it-matters p { margin:0; color:var(--muted); line-height:1.72; }
   .episode-thread-links { margin: 0 0 1.4rem; padding: 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: rgba(17,23,27,.72); }
   .episode-thread-links h2 { margin: .35rem 0 1rem; }
   .episode-thread-list { display: grid; }
@@ -206,5 +242,7 @@ const spoilerCopy = d.spoilerLevel === 'episode'
   .watch-action:hover { border-color:var(--accent-soft); color:var(--accent); }
   .primary-watch { border-color:var(--accent-soft); }
   .watch-order-link { margin-top:.15rem; font-size:.78rem; }
+  .gated-sidebar-panel { margin-top:1rem; }
+  [hidden] { display:none !important; }
   @media (max-width: 650px) { .episode-thread-list a { align-items: flex-start; flex-direction: column; } }
 </style>
