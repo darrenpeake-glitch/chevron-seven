@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { archiveTypes, valuesForType, episodesForValue, slugify, episodeCode, type ArchiveType } from '../../../lib/archive';
 
 export async function getStaticPaths() {
@@ -18,14 +18,22 @@ const { type, value } = Astro.props as { type: ArchiveType; value: string };
 const config = archiveTypes[type];
 const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
 const linked = episodesForValue(episodes, type, value);
+const loreRecords = (await getCollection('lore')).filter((entry) => !entry.data.draft);
+const lore = loreRecords.find((entry) => entry.data.type === type && entry.data.name === value);
+const renderedLore = lore ? await render(lore) : null;
+const LoreContent = renderedLore?.Content;
+const safeThrough = lore?.data.safeThrough
+  ? `${lore.data.safeThrough.series} S${String(lore.data.safeThrough.season).padStart(2, '0')}E${String(lore.data.safeThrough.episode).padStart(2, '0')}`
+  : null;
 ---
-<BaseLayout title={`${value} · ${config.label} · Chevron Seven`}>
+<BaseLayout title={`${value} · ${config.label} · Chevron Seven`} description={lore?.data.summary ?? `${value} archive record in Chevron Seven.`}>
   <section class="archive-hero">
     <div class="shell archive-entity-hero">
       <div>
         <div class="eyebrow">{config.singular}</div>
         <h1 class="episode-title">{value}</h1>
-        <p class="lede">Indexed automatically from mission metadata. This record currently links to {linked.length} archived {linked.length === 1 ? 'mission' : 'missions'}.</p>
+        {lore?.data.subtitle && <div class="archive-subtitle">{lore.data.subtitle}</div>}
+        <p class="lede">{lore?.data.summary ?? `Indexed automatically from mission metadata. This record currently links to ${linked.length} archived ${linked.length === 1 ? 'mission' : 'missions'}.`}</p>
       </div>
       <div class="archive-entity-code">{String(linked.length).padStart(2, '0')}</div>
     </div>
@@ -35,11 +43,45 @@ const linked = episodesForValue(episodes, type, value);
     <div class="shell mission-bar-inner">
       <div><span class="mission-label">Archive class</span><strong>{config.label}</strong></div>
       <div><span class="mission-label">Linked missions</span><strong>{linked.length}</strong></div>
-      <div><span class="mission-label">Status</span><strong>ACTIVE RECORD</strong></div>
+      <div><span class="mission-label">Status</span><strong>{lore?.data.status ?? 'ACTIVE RECORD'}</strong></div>
     </div>
   </section>
 
-  <section class="section">
+  {lore && LoreContent && (
+    <section class="section lore-section">
+      <div class="shell lore-layout">
+        <main class="lore-main">
+          <div class="section-heading lore-heading">
+            <div>
+              <div class="eyebrow">Curated archive intelligence</div>
+              <h2>Record briefing</h2>
+            </div>
+          </div>
+          <article class="mission-article lore-article">
+            <LoreContent />
+          </article>
+        </main>
+
+        <aside class="lore-sidebar">
+          <div class="sidebar-panel">
+            <div class="eyebrow">Spoiler control</div>
+            <div class="metric-list">
+              <div class="metric-row"><span>Scope</span><strong class="capitalize">{lore.data.spoilerLevel}</strong></div>
+              {safeThrough && <div class="metric-row"><span>Safe through</span><strong>{safeThrough}</strong></div>}
+            </div>
+          </div>
+          {lore.data.aliases.length > 0 && (
+            <div class="sidebar-panel">
+              <div class="eyebrow">Known as</div>
+              <div class="archive-list lore-aliases">{lore.data.aliases.map((alias) => <span>{alias}</span>)}</div>
+            </div>
+          )}
+        </aside>
+      </div>
+    </section>
+  )}
+
+  <section class="section archive-backlinks-section">
     <div class="shell">
       <div class="section-heading">
         <div>
