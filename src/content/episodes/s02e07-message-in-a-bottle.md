@@ -20,6 +20,11 @@ worlds: []
 technology:
   - "Stargate"
 arcs: []
+quotes:
+  - text: "Undomesticated equines could not remove me."
+    speaker: "Teal'c"
+    tier: intermediate
+    note: "A perfectly literal Teal'c translation — and one of his finest jokes."
 narrativeThreads: []
 spoilerLevel: episode
 rewatchRating: 3
