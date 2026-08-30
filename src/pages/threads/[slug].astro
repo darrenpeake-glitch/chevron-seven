@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import { watchOrder, watchOrderIndex, watchKeyForEpisode, codeForWatchEntry } from '../../lib/watch-order';
 
 export async function getStaticPaths() {
   const threads = (await getCollection('threads')).filter((entry) => !entry.data.draft);
@@ -9,32 +10,16 @@ export async function getStaticPaths() {
 
 const { thread } = Astro.props;
 const allEpisodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
-const scopeEpisodes = thread.data.scope === 'Franchise'
-  ? allEpisodes
-  : allEpisodes.filter((entry) => entry.data.series === thread.data.scope);
-const currentEpisode = [...scopeEpisodes].sort((a, b) => {
-  if (a.data.season !== b.data.season) return a.data.season - b.data.season;
-  return a.data.episode - b.data.episode;
-}).at(-1);
-
 const milestones = thread.data.milestones;
-const isVisibleAtCurrentPosition = (milestone) => {
-  if (!currentEpisode) return false;
-  if (milestone.series !== currentEpisode.data.series) return false;
-  if (milestone.season < currentEpisode.data.season) return true;
-  if (milestone.season > currentEpisode.data.season) return false;
-  return milestone.episode <= currentEpisode.data.episode;
-};
-const visibleMilestones = milestones.filter(isVisibleAtCurrentPosition);
-const futureMilestones = milestones.length - visibleMilestones.length;
 const archivedEpisodeFor = (milestone) => allEpisodes.find((entry) =>
   entry.data.series === milestone.series &&
   entry.data.season === milestone.season &&
   entry.data.episode === milestone.episode
 );
 const codeFor = (milestone) => `S${String(milestone.season).padStart(2,'0')}E${String(milestone.episode).padStart(2,'0')}`;
-const currentCode = currentEpisode ? `S${String(currentEpisode.data.season).padStart(2,'0')}E${String(currentEpisode.data.episode).padStart(2,'0')}` : null;
-const firstFutureIndex = milestones.findIndex((milestone) => !isVisibleAtCurrentPosition(milestone));
+const keyFor = (milestone) => watchKeyForEpisode(milestone.series, milestone.season, milestone.episode);
+const clientWatchOrder = watchOrder.map((entry, index) => ({ key: entry.key, index, series: entry.series, title: entry.title, code: codeForWatchEntry(entry) }));
+const clientMilestones = milestones.map((milestone, index) => ({ key: keyFor(milestone), index, orderIndex: watchOrderIndex.get(keyFor(milestone)) ?? -1 }));
 ---
 <BaseLayout title={`${thread.data.name} · Narrative Thread · Chevron Seven`} description={thread.data.summary}>
   <section class="thread-hero">
@@ -45,18 +30,18 @@ const firstFutureIndex = milestones.findIndex((milestone) => !isVisibleAtCurrent
         <p class="lede">{thread.data.summary}</p>
       </div>
       <aside class="thread-status">
-        <span class="mission-label">At your rewatch position</span>
-        <strong>{futureMilestones > 0 ? 'THREAD UNRESOLVED' : 'THREAD COMPLETE'}</strong>
-        {currentEpisode && <span>{currentEpisode.data.series} · {currentCode} · {currentEpisode.data.title}</span>}
+        <span class="mission-label">At your watch position</span>
+        <strong id="thread-progress-status">CHECKING PROGRESS</strong>
+        <span id="thread-progress-current">Watch Order progress controls this reveal.</span>
       </aside>
     </div>
   </section>
 
   <section class="mission-bar">
     <div class="shell mission-bar-inner">
-      <div><span class="mission-label">Visible milestones</span><strong>{visibleMilestones.length}</strong></div>
+      <div><span class="mission-label">Visible milestones</span><strong id="thread-visible-count">0</strong></div>
       <div><span class="mission-label">Full thread</span><strong>{milestones.length} milestones</strong></div>
-      <div><span class="mission-label">Later milestones hidden</span><strong>{futureMilestones}</strong></div>
+      <div><span class="mission-label">Later milestones hidden</span><strong id="thread-hidden-count">{milestones.length}</strong></div>
     </div>
   </section>
 
@@ -67,10 +52,11 @@ const firstFutureIndex = milestones.findIndex((milestone) => !isVisibleAtCurrent
           <div><div class="eyebrow">First-watch reading</div><h2>Narrative path</h2></div>
           <a class="text-link" href="/threads/">← All threads</a>
         </div>
-        <p class="thread-intro">Only what has become meaningful by the current Mission Log position is shown here. Later connections remain hidden until you deliberately open the full rewatch path.</p>
+        <p class="thread-intro">Only milestones established by episodes you have marked watched are shown here. Later connections remain hidden until your Watch Order progress reaches them or you deliberately open the full rewatch path.</p>
 
-        <div class="thread-path">
-          {visibleMilestones.map((milestone, index) => {
+        <div class="thread-empty" id="thread-empty">No milestones in this thread have been reached in your saved watch progress yet.</div>
+        <div class="thread-path" id="safe-thread-path">
+          {milestones.map((milestone, index) => {
             const archived = archivedEpisodeFor(milestone);
             const stepContent = (
               <>
@@ -87,26 +73,24 @@ const firstFutureIndex = milestones.findIndex((milestone) => !isVisibleAtCurrent
               </>
             );
             return archived
-              ? <a class="thread-step" href={`/episodes/${archived.id}/`}>{stepContent}</a>
-              : <div class="thread-step">{stepContent}</div>;
+              ? <a class="thread-step progress-gated" data-milestone-key={keyFor(milestone)} href={`/episodes/${archived.id}/`}>{stepContent}</a>
+              : <div class="thread-step progress-gated" data-milestone-key={keyFor(milestone)}>{stepContent}</div>;
           })}
         </div>
 
-        {futureMilestones > 0 && (
-          <div class="thread-horizon">
-            <div class="eyebrow">Current horizon</div>
-            <strong>The thread remains unresolved.</strong>
-            <p>{futureMilestones} later milestone{futureMilestones === 1 ? '' : 's'} exist beyond the current rewatch position. Their identities and consequences are hidden below.</p>
-          </div>
-        )}
+        <div class="thread-horizon" id="thread-horizon">
+          <div class="eyebrow">Current horizon</div>
+          <strong id="thread-horizon-title">The thread is not yet revealed.</strong>
+          <p id="thread-horizon-copy">Your saved Watch Order progress controls when milestones become visible.</p>
+        </div>
 
-        <details class="full-thread">
+        <details class="full-thread" id="full-thread">
           <summary>
             <span>Full rewatch path</span>
             <strong>Reveal later spoilers →</strong>
           </summary>
           <div class="full-thread-warning">Full-series spoilers for this narrative thread begin below.</div>
-          <div class="thread-path full-thread-path">
+          <div class="thread-path full-thread-path" id="full-thread-path">
             {milestones.map((milestone, index) => {
               const archived = archivedEpisodeFor(milestone);
               const stepContent = (
@@ -123,19 +107,9 @@ const firstFutureIndex = milestones.findIndex((milestone) => !isVisibleAtCurrent
                   </div>
                 </>
               );
-              return (
-                <>
-                  {firstFutureIndex === index && currentEpisode && (
-                    <div class="thread-boundary">
-                      <span>Current rewatch limit</span>
-                      <strong>{currentEpisode.data.series} · {currentCode} · {currentEpisode.data.title}</strong>
-                    </div>
-                  )}
-                  {archived
-                    ? <a class="thread-step" href={`/episodes/${archived.id}/`}>{stepContent}</a>
-                    : <div class="thread-step thread-step-future">{stepContent}</div>}
-                </>
-              );
+              return archived
+                ? <a class="thread-step full-thread-step" data-milestone-key={keyFor(milestone)} href={`/episodes/${archived.id}/`}>{stepContent}</a>
+                : <div class="thread-step thread-step-future full-thread-step" data-milestone-key={keyFor(milestone)}>{stepContent}</div>;
             })}
           </div>
         </details>
@@ -144,12 +118,8 @@ const firstFutureIndex = milestones.findIndex((milestone) => !isVisibleAtCurrent
       <aside class="thread-sidebar">
         <div class="sidebar-panel">
           <div class="eyebrow">Current position</div>
-          {currentEpisode ? (
-            <div class="thread-current">
-              <strong>{currentEpisode.data.series} · {currentCode}</strong>
-              <span>{currentEpisode.data.title}</span>
-            </div>
-          ) : <p>No mission records loaded for this scope.</p>}
+          <div class="thread-current" id="thread-current"><strong>No saved progress</strong><span>Open Watch Order to set your position.</span></div>
+          <a class="text-link thread-watch-link" href="/watch-order">Open Watch Order →</a>
         </div>
         <div class="sidebar-panel">
           <div class="eyebrow">Role key</div>
@@ -160,6 +130,79 @@ const firstFutureIndex = milestones.findIndex((milestone) => !isVisibleAtCurrent
       </aside>
     </div>
   </section>
+
+  <script id="thread-watch-order-data" type="application/json" set:html={JSON.stringify(clientWatchOrder)}></script>
+  <script id="thread-milestone-data" type="application/json" set:html={JSON.stringify(clientMilestones)}></script>
+  <script src="/watch-progress.js"></script>
+  <script is:inline>
+    (() => {
+      if (!window.ChevronWatch) return;
+      const order = JSON.parse(document.getElementById('thread-watch-order-data').textContent || '[]');
+      const milestones = JSON.parse(document.getElementById('thread-milestone-data').textContent || '[]');
+      const safeSteps = [...document.querySelectorAll('#safe-thread-path .progress-gated')];
+      const fullSteps = [...document.querySelectorAll('#full-thread-path .full-thread-step')];
+
+      const render = () => {
+        const watched = new Set(window.ChevronWatch.load());
+        const watchedOrderEntries = order.filter((entry) => watched.has(entry.key));
+        const current = watchedOrderEntries.sort((a,b) => a.index - b.index).at(-1);
+        const reached = milestones.filter((milestone) => watched.has(milestone.key));
+
+        safeSteps.forEach((step) => step.classList.toggle('is-progress-visible', watched.has(step.dataset.milestoneKey)));
+        document.getElementById('thread-empty').style.display = reached.length ? 'none' : 'block';
+        document.getElementById('thread-visible-count').textContent = String(reached.length);
+        document.getElementById('thread-hidden-count').textContent = String(milestones.length - reached.length);
+
+        const status = document.getElementById('thread-progress-status');
+        const currentCopy = document.getElementById('thread-progress-current');
+        if (!current) {
+          status.textContent = 'NO WATCH POSITION';
+          currentCopy.textContent = 'Set progress in Watch Order to begin spoiler-safe reveals.';
+        } else if (reached.length === milestones.length) {
+          status.textContent = 'THREAD COMPLETE';
+          currentCopy.textContent = `${current.series} · ${current.code} · ${current.title}`;
+        } else {
+          status.textContent = reached.length ? 'THREAD UNRESOLVED' : 'NOT YET REVEALED';
+          currentCopy.textContent = `${current.series} · ${current.code} · ${current.title}`;
+        }
+
+        const currentPanel = document.getElementById('thread-current');
+        currentPanel.innerHTML = current
+          ? `<strong>${current.series} · ${current.code}</strong><span>${current.title}</span>`
+          : '<strong>No saved progress</strong><span>Open Watch Order to set your position.</span>';
+
+        const horizonTitle = document.getElementById('thread-horizon-title');
+        const horizonCopy = document.getElementById('thread-horizon-copy');
+        if (!reached.length) {
+          horizonTitle.textContent = 'The thread is not yet revealed.';
+          horizonCopy.textContent = `${milestones.length} milestones remain beyond your confirmed watch progress.`;
+        } else if (reached.length < milestones.length) {
+          horizonTitle.textContent = 'The thread remains unresolved.';
+          horizonCopy.textContent = `${milestones.length - reached.length} later milestone${milestones.length - reached.length === 1 ? '' : 's'} remain hidden beyond your confirmed watch progress.`;
+        } else {
+          horizonTitle.textContent = 'Thread complete.';
+          horizonCopy.textContent = 'Your confirmed watch progress has reached every milestone in this narrative thread.';
+        }
+
+        document.querySelectorAll('.rewatch-limit-marker').forEach((node) => node.remove());
+        if (current) {
+          const boundary = fullSteps.find((step) => {
+            const milestone = milestones.find((item) => item.key === step.dataset.milestoneKey);
+            return milestone && milestone.orderIndex > current.index;
+          });
+          if (boundary) {
+            const marker = document.createElement('div');
+            marker.className = 'rewatch-limit-marker';
+            marker.innerHTML = `<span>CURRENT REWATCH LIMIT</span><strong>${current.series} · ${current.code}</strong>`;
+            boundary.before(marker);
+          }
+        }
+      };
+
+      window.addEventListener('chevron-watch-change', render);
+      render();
+    })();
+  </script>
 </BaseLayout>
 
 <style>
@@ -170,8 +213,11 @@ const firstFutureIndex = milestones.findIndex((milestone) => !isVisibleAtCurrent
   .thread-status > span:last-child { color:var(--muted); font-size:.82rem; line-height:1.45; }
   .thread-layout { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:2rem; align-items:start; }
   .thread-intro { color:var(--muted); line-height:1.7; max-width:68ch; margin:-.25rem 0 1rem; }
+  .thread-empty { padding:1.2rem 0; color:var(--muted); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
   .thread-path { display:grid; }
-  .thread-step { display:grid; grid-template-columns:58px minmax(0,1fr); gap:1rem; padding:1.35rem 0; border-bottom:1px solid var(--line); text-decoration:none; }
+  .progress-gated { display:none; }
+  .progress-gated.is-progress-visible { display:grid; }
+  .thread-step { grid-template-columns:58px minmax(0,1fr); gap:1rem; padding:1.35rem 0; border-bottom:1px solid var(--line); text-decoration:none; }
   .thread-step-marker { position:relative; display:grid; place-items:start center; }
   .thread-step-marker::after { content:""; position:absolute; top:30px; bottom:-1.35rem; width:1px; background:var(--line); }
   .thread-step:last-child .thread-step-marker::after { display:none; }
@@ -194,15 +240,16 @@ const firstFutureIndex = milestones.findIndex((milestone) => !isVisibleAtCurrent
   .full-thread[open] > summary { border-bottom:1px solid var(--line); }
   .full-thread-warning { padding:.85rem 1.3rem; color:var(--accent); font-size:.78rem; border-bottom:1px solid var(--line); background:rgba(212,167,76,.045); }
   .full-thread-path { padding:0 1.3rem 1rem; }
-  .thread-boundary { margin:0 -1.3rem; padding:.85rem 1.3rem; border-top:1px solid var(--accent-soft); border-bottom:1px solid var(--accent-soft); background:rgba(212,167,76,.085); display:flex; flex-wrap:wrap; justify-content:space-between; gap:.7rem; align-items:center; }
-  .thread-boundary span { color:var(--accent); font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em; }
-  .thread-boundary strong { font-size:.82rem; }
+  .full-thread-step { display:grid; }
   .thread-step-future { opacity:.92; }
+  .rewatch-limit-marker { margin:1rem 0; padding:.75rem 1rem; border-top:1px solid var(--accent-soft); border-bottom:1px solid var(--accent-soft); display:flex; justify-content:space-between; gap:1rem; color:var(--accent); font-size:.72rem; letter-spacing:.07em; }
+  .rewatch-limit-marker strong { color:var(--text); }
   .thread-sidebar { position:sticky; top:96px; display:grid; gap:1rem; }
   .thread-current { display:grid; gap:.25rem; margin-top:.7rem; }
   .thread-current strong { color:var(--accent); }
   .thread-current span { color:var(--muted); }
+  .thread-watch-link { display:inline-block; margin-top:.8rem; font-size:.78rem; }
   .role-key { display:flex; flex-wrap:wrap; gap:.45rem; margin-top:.8rem; }
   .role-key span { padding:.25rem .5rem; border:1px solid var(--line); border-radius:999px; color:var(--muted); font-size:.72rem; }
-  @media (max-width:760px) { .thread-hero-grid,.thread-layout { grid-template-columns:1fr; } .thread-sidebar { position:static; } .full-thread > summary { align-items:flex-start; flex-direction:column; } .thread-boundary { align-items:flex-start; flex-direction:column; } }
+  @media (max-width:760px) { .thread-hero-grid,.thread-layout { grid-template-columns:1fr; } .thread-sidebar { position:static; } .full-thread > summary,.rewatch-limit-marker { align-items:flex-start; flex-direction:column; } }
 </style>
