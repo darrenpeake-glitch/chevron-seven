@@ -42,6 +42,27 @@ const keyPrefix = (series: Exclude<WatchSeries, 'Film'>) =>
 export const watchKeyForEpisode = (series: Exclude<WatchSeries, 'Film'>, season: number, episode: number) =>
   `${keyPrefix(series)}:${season}:${episode}`;
 
+export const watchKeyForContentRecord = (
+  series: WatchSeries,
+  season?: number,
+  episode?: number,
+  explicitKey?: string
+) => {
+  if (series === 'Film') {
+    if (!explicitKey) throw new Error('Film Mission Files require an explicit watchKey.');
+    return explicitKey;
+  }
+  if (season === undefined || episode === undefined) {
+    throw new Error(`${series} Mission Files require season and episode numbers.`);
+  }
+  return watchKeyForEpisode(series, season, episode);
+};
+
+export const codeForContentRecord = (series: WatchSeries, season?: number, episode?: number) =>
+  series === 'Film'
+    ? 'FEATURE'
+    : `S${String(season).padStart(2, '0')}E${String(episode).padStart(2, '0')}`;
+
 const titlesFor = (series: Exclude<WatchSeries, 'Film'>, seasonNumber: number) =>
   series === 'SG-1' ? sg1Titles[seasonNumber] : series === 'Atlantis' ? sgaTitles[seasonNumber] : sguTitles[seasonNumber];
 
