@@ -25,6 +25,9 @@ technology:
 arcs:
   - "Jaffa resistance"
   - "Goa'uld conflict"
+previouslyRelevant:
+  - watchKey: "sg1:1:1"
+    reason: "Apophis's attack, the return to Abydos and the abduction of Sha're and Skaara launch the pursuit that brings SG-1 to Chulak."
 narrativeThreads:
   - thread: "jaffa-freedom"
     role: reveal
