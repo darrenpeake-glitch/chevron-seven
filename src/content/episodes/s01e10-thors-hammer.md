@@ -26,6 +26,11 @@ arcs:
   - "Asgard–Tau'ri relationship"
   - "Jaffa resistance"
   - "Goa'uld conflict"
+connections:
+  - Asgard
+  - First contact
+  - Jaffa
+continuityWeight: mythology
 narrativeThreads:
   - thread: "asgard-tauri-relationship"
     role: breadcrumb
