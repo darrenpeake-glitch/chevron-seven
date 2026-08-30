@@ -25,6 +25,13 @@ arcs:
   - Asgard–Tau'ri alliance
   - Goa'uld System Lords
 spoilerLevel: episode
+biggerPicture:
+  summary: "Earth is no longer being treated merely as a rebellious backwater. By bringing the Tau'ri into direct negotiation with the System Lords under Asgard protection, this episode marks a shift toward Earth becoming a recognised political factor in the Milky Way."
+  threads:
+    - "Asgard–Tau'ri alliance"
+    - "Earth's galactic status"
+    - "Goa'uld political order"
+  fullContext: "This relationship becomes part of the long arc in which Earth moves from technological outsider to major galactic power. The Asgard connection later contributes directly to the Tau'ri gaining access to knowledge and technology far beyond what Earth possesses at this point in the series."
 oneillSarcasm: 8
 tealcEyebrow: moderate
 rewatchRating: 4
