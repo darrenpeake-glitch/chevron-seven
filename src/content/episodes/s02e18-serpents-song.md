@@ -23,6 +23,11 @@ technology:
   - "Stargate"
 arcs:
   - "Goa'uld conflict"
+previouslyRelevant:
+  - watchKey: "sg1:2:1"
+    reason: "Earth's destruction of Apophis's invasion fleet is the defeat that leaves its former enemy diminished enough to become prey for rival Goa'uld powers."
+  - watchKey: "sg1:2:12"
+    reason: "The newly established Tok'ra relationship gives Earth an allied perspective on Apophis, Sokar and the strategic consequences of granting sanctuary."
 narrativeThreads:
   - thread: "tokra-alliance"
     role: development
