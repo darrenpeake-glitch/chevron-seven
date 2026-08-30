@@ -2,7 +2,7 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
 import { archiveTypes, valuesForType, episodesForValue, slugify, episodeCode, type ArchiveType } from '../../../lib/archive';
-import { watchKeyForEpisode } from '../../../lib/watch-order';
+import { watchKeyForEpisode, watchOrderIndex } from '../../../lib/watch-order';
 
 export async function getStaticPaths() {
   const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
@@ -18,7 +18,17 @@ export async function getStaticPaths() {
 const { type, value } = Astro.props as { type: ArchiveType; value: string };
 const config = archiveTypes[type];
 const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
-const linked = episodesForValue(episodes, type, value);
+const linked = episodesForValue(episodes, type, value)
+  .map((entry) => {
+    const watchKey = watchKeyForEpisode(entry.data.series, entry.data.season, entry.data.episode);
+    return {
+      entry,
+      watchKey,
+      watchIndex: watchOrderIndex.get(watchKey) ?? Number.MAX_SAFE_INTEGER,
+      code: episodeCode(entry)
+    };
+  })
+  .sort((a, b) => a.watchIndex - b.watchIndex);
 const loreRecords = (await getCollection('lore')).filter((entry) => !entry.data.draft);
 const lore = loreRecords.find((entry) => entry.data.type === type && entry.data.name === value);
 const renderedLore = lore ? await render(lore) : null;
@@ -30,6 +40,14 @@ const coreUnlockKey = lore?.data.safeThrough
   ? watchKeyForEpisode(lore.data.safeThrough.series, lore.data.safeThrough.season, lore.data.safeThrough.episode)
   : null;
 const safeThrough = formatPoint(lore?.data.safeThrough);
+const appearanceData = linked.map(({ entry, watchKey, watchIndex, code }) => ({
+  key: watchKey,
+  index: watchIndex,
+  series: entry.data.series,
+  code,
+  title: entry.data.title,
+  href: `/episodes/${entry.id}/`
+}));
 ---
 <BaseLayout title={`${value} · ${config.label} · Chevron Seven`} description={lore?.data.summary ?? `${value} archive record in Chevron Seven.`}>
   <section class="archive-hero archive-record-hero">
@@ -38,11 +56,11 @@ const safeThrough = formatPoint(lore?.data.safeThrough);
         <div class="eyebrow">{config.singular}</div>
         <h1 class="episode-title">{value}</h1>
         {lore?.data.subtitle && <div class="archive-subtitle">{lore.data.subtitle}</div>}
-        <p class="lede">{lore?.data.summary ?? `Indexed automatically from mission metadata. This record currently links to ${linked.length} archived ${linked.length === 1 ? 'mission' : 'missions'}.`}</p>
+        <p class="lede">{lore?.data.summary ?? `Indexed from Mission File metadata. Appearance history is limited to missions in your confirmed rewatch progress.`}</p>
       </div>
-      <div class="archive-entity-count" aria-label={`${linked.length} linked missions`}>
-        <strong>{String(linked.length).padStart(2, '0')}</strong>
-        <span>linked {linked.length === 1 ? 'mission' : 'missions'}</span>
+      <div class="archive-entity-count" aria-label="Appearances seen in your rewatch">
+        <strong id="archive-seen-count">00</strong>
+        <span>appearances seen</span>
       </div>
     </div>
   </section>
@@ -50,8 +68,36 @@ const safeThrough = formatPoint(lore?.data.safeThrough);
   <section class="mission-bar">
     <div class="shell mission-bar-inner">
       <div><span class="mission-label">Archive class</span><strong>{config.label}</strong></div>
-      <div><span class="mission-label">Linked missions</span><strong>{linked.length}</strong></div>
+      <div><span class="mission-label">Seen in your rewatch</span><strong id="archive-linked-count">0</strong></div>
       <div><span class="mission-label">Status</span><strong>{lore?.data.status ?? 'ACTIVE RECORD'}</strong></div>
+    </div>
+  </section>
+
+  <section class="section appearance-intelligence-section">
+    <div class="shell">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Watch-state intelligence</div>
+          <h2>Appearance record</h2>
+        </div>
+      </div>
+      <div class="appearance-grid" id="appearance-grid">
+        <div class="appearance-card">
+          <span class="mission-label">First encountered</span>
+          <strong id="appearance-first-code">Not encountered</strong>
+          <a id="appearance-first-title" href="/watch-order">No watched appearance yet.</a>
+        </div>
+        <div class="appearance-card">
+          <span class="mission-label">Last seen so far</span>
+          <strong id="appearance-last-code">—</strong>
+          <a id="appearance-last-title" href="/watch-order">Progress will update this record.</a>
+        </div>
+        <div class="appearance-card appearance-count-card">
+          <span class="mission-label">Appearances in your rewatch</span>
+          <strong id="appearance-total">0</strong>
+          <span>Future appearances are never disclosed.</span>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -113,14 +159,20 @@ const safeThrough = formatPoint(lore?.data.safeThrough);
         <div>
           <div class="eyebrow">Mission backlinks</div>
           <h2>Referenced missions</h2>
+          <p class="appearance-safe-note">Only missions you have marked watched are shown here.</p>
         </div>
         <a class="text-link" href={`/archive/${type}/`}>← {config.label}</a>
       </div>
 
+      <div class="archive-empty-backlinks" id="archive-empty-backlinks">
+        <strong>No watched references yet.</strong>
+        <span>This list will populate as your rewatch reaches missions connected to this record.</span>
+      </div>
+
       <div class="archive-mission-list">
-        {linked.map((entry) => (
-          <a class="archive-mission-row" href={`/episodes/${entry.id}/`}>
-            <div class="archive-mission-code">{episodeCode(entry)}</div>
+        {linked.map(({ entry, watchKey, code }) => (
+          <a class="archive-mission-row" data-archive-watch-key={watchKey} href={`/episodes/${entry.id}/`} hidden>
+            <div class="archive-mission-code">{code}</div>
             <div class="archive-mission-copy">
               <span class="mission-label">{entry.data.series}</span>
               <strong>{entry.data.title}</strong>
@@ -134,4 +186,77 @@ const safeThrough = formatPoint(lore?.data.safeThrough);
       </div>
     </div>
   </section>
+
+  <script id="archive-appearance-data" type="application/json" set:html={JSON.stringify(appearanceData)}></script>
+  <script is:inline src="/watch-progress.js"></script>
+  <script is:inline>
+    (() => {
+      if (!window.ChevronWatch) return;
+      const dataNode = document.getElementById('archive-appearance-data');
+      const appearances = JSON.parse(dataNode?.textContent || '[]');
+      const rows = [...document.querySelectorAll('[data-archive-watch-key]')];
+      const seenCount = document.getElementById('archive-seen-count');
+      const linkedCount = document.getElementById('archive-linked-count');
+      const firstCode = document.getElementById('appearance-first-code');
+      const firstTitle = document.getElementById('appearance-first-title');
+      const lastCode = document.getElementById('appearance-last-code');
+      const lastTitle = document.getElementById('appearance-last-title');
+      const total = document.getElementById('appearance-total');
+      const empty = document.getElementById('archive-empty-backlinks');
+
+      const setAppearance = (codeNode, titleNode, entry, emptyCode, emptyText) => {
+        if (!entry) {
+          codeNode.textContent = emptyCode;
+          titleNode.textContent = emptyText;
+          titleNode.href = '/watch-order';
+          return;
+        }
+        codeNode.textContent = `${entry.series} · ${entry.code}`;
+        titleNode.textContent = entry.title;
+        titleNode.href = entry.href;
+      };
+
+      const render = () => {
+        const watched = new Set(window.ChevronWatch.load());
+        const seen = appearances.filter((entry) => watched.has(entry.key));
+        const first = seen[0];
+        const last = seen.at(-1);
+        const count = seen.length;
+
+        seenCount.textContent = String(count).padStart(2, '0');
+        linkedCount.textContent = String(count);
+        total.textContent = String(count);
+        setAppearance(firstCode, firstTitle, first, 'Not encountered', 'No watched appearance yet.');
+        setAppearance(lastCode, lastTitle, last, '—', 'Progress will update this record.');
+
+        rows.forEach((row) => {
+          row.hidden = !watched.has(row.dataset.archiveWatchKey);
+        });
+        empty.hidden = count > 0;
+      };
+
+      window.addEventListener('chevron-watch-change', render);
+      render();
+    })();
+  </script>
 </BaseLayout>
+
+<style>
+  .appearance-intelligence-section { padding-bottom:0; }
+  .appearance-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; }
+  .appearance-card { min-height:145px; padding:1.15rem; border:1px solid var(--line); border-radius:12px; background:var(--panel); display:grid; align-content:end; gap:.35rem; }
+  .appearance-card > strong { color:var(--accent); font-size:.9rem; letter-spacing:.04em; }
+  .appearance-card > a { color:var(--text); text-decoration:none; font-weight:700; line-height:1.35; }
+  .appearance-card > a:hover { color:var(--accent); }
+  .appearance-count-card > strong { font-size:2.2rem; line-height:1; }
+  .appearance-count-card > span:last-child { color:var(--muted); font-size:.78rem; }
+  .appearance-safe-note { margin:.4rem 0 0; color:var(--muted); font-size:.82rem; }
+  .archive-empty-backlinks { padding:1.2rem; border:1px dashed var(--line); border-radius:12px; background:rgba(17,23,27,.5); display:grid; gap:.3rem; }
+  .archive-empty-backlinks strong { color:var(--text); }
+  .archive-empty-backlinks span { color:var(--muted); font-size:.85rem; }
+  [hidden] { display:none !important; }
+  @media (max-width:720px) {
+    .appearance-grid { grid-template-columns:1fr; }
+    .appearance-card { min-height:120px; }
+  }
+</style>
