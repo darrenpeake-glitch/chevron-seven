@@ -24,6 +24,9 @@ technology:
 arcs:
   - "Jaffa resistance"
   - "Goa'uld conflict"
+previouslyRelevant:
+  - watchKey: "sg1:1:2"
+    reason: "Teal'c's decision to abandon Apophis and join Earth creates the danger now facing the family he left behind on Chulak."
 narrativeThreads:
   - thread: "jaffa-freedom"
     role: development
