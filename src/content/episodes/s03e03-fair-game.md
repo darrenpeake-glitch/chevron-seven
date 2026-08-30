@@ -3,6 +3,9 @@ title: "Fair Game"
 series: "SG-1"
 season: 3
 episode: 3
+briefing: "Earth's growing defiance of the Goa'uld forces the SGC into an unfamiliar arena: diplomacy. With the Asgard involved and powerful System Lords arriving to negotiate, O'Neill has to help secure Earth's future without the usual option of solving the problem with gunfire."
+debrief: "Thor brings O'Neill into negotiations between Earth and the Goa'uld System Lords over Earth's inclusion in the Protected Planets Treaty. Cronus, Yu and Nirrti represent the Goa'uld, and the talks become a murder investigation when Cronus is attacked and Teal'c is blamed. SG-1 discovers that Nirrti used advanced cloaking technology to carry out the attack and frame him. With the deception exposed, the negotiations conclude with Earth receiving formal Asgard protection under the treaty — but Thor also reveals that the Asgard cannot simply defeat the Goa'uld for humanity because they are already committed to a far more dangerous conflict in their own galaxy."
+whyItMatters: "Earth crosses an important political threshold. The Tau'ri are no longer merely a troublesome world resisting Goa'uld rule; they are now significant enough to be negotiated over by the System Lords and protected through an interstellar treaty. The episode also strengthens the Asgard–Tau'ri relationship and plants a quiet but major long-term breadcrumb when Thor mentions the unnamed enemy consuming Asgard resources."
 missionType:
   - Diplomacy
   - Goa'uld politics
@@ -44,10 +47,6 @@ rewatchRating: 4
 featured: true
 draft: false
 ---
-
-## Why It Matters
-
-Earth is increasingly difficult for the Goa'uld to treat as an insignificant rebellious world. The episode moves the Tau'ri into the political calculations of much older galactic powers and strengthens the importance of Earth's relationship with the Asgard.
 
 ## Rewatch Notes
 
