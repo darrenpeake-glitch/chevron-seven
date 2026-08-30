@@ -23,7 +23,15 @@ technology:
   - "Stargate"
 arcs:
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "tokra-alliance"
+    role: development
+    relevance: primary
+    note: "Earth and the Tok'ra discover quickly that cooperation still leaves room for conflicting priorities over intelligence, revenge and strategy."
+  - thread: "goauld-political-order"
+    role: escalation
+    relevance: primary
+    note: "Apophis's defeat by Sokar exposes the violent competition underneath Goa'uld power."
 spoilerLevel: episode
 rewatchRating: 4
 featured: false
