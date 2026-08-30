@@ -6,9 +6,28 @@ summary: "Archaeologist and linguist whose instinct is to understand a civilizat
 spoilerLevel: episode
 safeThrough:
   series: SG-1
-  season: 3
-  episode: 4
-status: "REWATCH-SAFE PROFILE"
+  season: 1
+  episode: 1
+revelations:
+  - after:
+      series: SG-1
+      season: 1
+      episode: 11
+    heading: "The Four Races clue"
+    text: "The Torment of Tantalus gives Daniel evidence that advanced civilizations once cooperated across the galaxy. The discovery becomes one of his strongest reasons to treat mythology and archaeology as a map to the wider Stargate story."
+  - after:
+      series: SG-1
+      season: 2
+      episode: 9
+    heading: "Sha're remains the personal mission"
+    text: "Secrets brings Daniel face to face with the continuing human cost of the Goa'uld conflict. His work with SG-1 is never only academic; finding and protecting Sha're remains deeply personal."
+  - after:
+      series: SG-1
+      season: 3
+      episode: 8
+    heading: "Faith and intervention"
+    text: "Demons again places Daniel between belief, fear and evidence. His instinct is to understand the culture first, even when SG-1 is forced to act against practices justified as sacred."
+status: "PROGRESSIVE PROFILE"
 aliases:
   - "Dr. Jackson"
   - "Daniel"
@@ -37,7 +56,3 @@ He decodes inscriptions, identifies cultural patterns and frequently provides th
 - Deep curiosity about unfamiliar cultures.
 - Persistent moral concern for people encountered through the Stargate.
 - Willingness to challenge military assumptions when he thinks important context is being missed.
-
-## Rewatch Position
-
-This record includes only information established by **SG-1 S03E04 — Legacy**.
