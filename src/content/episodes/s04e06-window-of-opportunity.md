@@ -12,6 +12,11 @@ factions: ["Tau'ri"]
 worlds: ["Earth"]
 technology: ["Stargate", "Ancient time device"]
 arcs: ["Ancient legacy"]
+quotes:
+  - text: "In the middle of my backswing?!"
+    speaker: "Jack O'Neill"
+    tier: basic
+    note: "If you know Stargate, you probably heard the delivery before you finished reading it."
 narrativeThreads: []
 spoilerLevel: episode
 rewatchRating: 5
