@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import { watchOrder, watchKeyForEpisode, codeForWatchEntry } from '../../lib/watch-order';
 
 const episodes = (await getCollection('episodes'))
   .filter((entry) => !entry.data.draft)
@@ -10,7 +11,15 @@ const episodes = (await getCollection('episodes'))
     return a.data.episode - b.data.episode;
   });
 
-const current = episodes.at(-1);
+const archivedByKey = new Map(episodes.map((entry) => [watchKeyForEpisode(entry.data.series, entry.data.season, entry.data.episode), entry]));
+const progressEntries = watchOrder.map((entry, index) => ({
+  key: entry.key,
+  index,
+  series: entry.series,
+  code: codeForWatchEntry(entry),
+  title: entry.title,
+  archiveId: archivedByKey.get(entry.key)?.id ?? null
+}));
 
 const groups = new Map();
 for (const entry of episodes) {
@@ -37,14 +46,12 @@ const formatCode = (entry) => `S${String(entry.data.season).padStart(2, '0')}E${
         <p class="lede">Episode-by-episode rewatch records, grouped by season and built to grow with the archive.</p>
       </div>
 
-      {current && (
-        <a class="log-current" href={`/episodes/${current.id}/`}>
-          <span class="mission-label">Current position</span>
-          <strong>{current.data.series} · {formatCode(current)}</strong>
-          <span>{current.data.title}</span>
-          <small>Open current mission →</small>
-        </a>
-      )}
+      <a class="log-current" id="log-current-card" href="/watch-order">
+        <span class="mission-label">Current position</span>
+        <strong id="log-current-code">Watch progress not set</strong>
+        <span id="log-current-title">Use Watch Order to establish your position.</span>
+        <small id="log-current-action">Open watch order →</small>
+      </a>
     </div>
   </section>
 
@@ -70,14 +77,14 @@ const formatCode = (entry) => `S${String(entry.data.season).padStart(2, '0')}E${
 
           <div class="season-list">
             {season.episodes.map((entry) => {
-              const isCurrent = current?.id === entry.id;
+              const watchKey = watchKeyForEpisode(entry.data.series, entry.data.season, entry.data.episode);
               return (
-                <a class:list={["mission-row", isCurrent && "is-current"]} href={`/episodes/${entry.id}/`}>
+                <a class="mission-row" data-watch-key={watchKey} href={`/episodes/${entry.id}/`}>
                   <div class="mission-row-code">{formatCode(entry)}</div>
                   <div class="mission-row-copy">
                     <div class="mission-row-titleline">
                       <h3>{entry.data.title}</h3>
-                      {isCurrent && <span class="current-badge">Current position</span>}
+                      <span class="current-badge" hidden>Current position</span>
                     </div>
                     <div class="mission-row-tags">
                       {entry.data.missionType.slice(0, 3).map((item) => <span>{item}</span>)}
@@ -96,6 +103,52 @@ const formatCode = (entry) => `S${String(entry.data.season).padStart(2, '0')}E${
       ))}
     </div>
   </section>
+
+  <script id="mission-log-watch-data" type="application/json" set:html={JSON.stringify(progressEntries)}></script>
+  <script is:inline src="/watch-progress.js"></script>
+  <script is:inline>
+    (() => {
+      if (!window.ChevronWatch) return;
+      const entries = JSON.parse(document.getElementById('mission-log-watch-data').textContent || '[]');
+      const rows = [...document.querySelectorAll('.mission-row[data-watch-key]')];
+      const card = document.getElementById('log-current-card');
+      const code = document.getElementById('log-current-code');
+      const title = document.getElementById('log-current-title');
+      const action = document.getElementById('log-current-action');
+
+      const render = () => {
+        const watched = new Set(window.ChevronWatch.load());
+        const current = [...entries].reverse().find((entry) => watched.has(entry.key));
+        rows.forEach((row) => {
+          const isCurrent = current?.key === row.dataset.watchKey;
+          row.classList.toggle('is-current', isCurrent);
+          const badge = row.querySelector('.current-badge');
+          if (badge) badge.hidden = !isCurrent;
+        });
+
+        if (!current) {
+          code.textContent = 'Watch progress not set';
+          title.textContent = 'Use Watch Order to establish your position.';
+          action.textContent = 'Open watch order →';
+          card.href = '/watch-order';
+          return;
+        }
+
+        code.textContent = `${current.series} · ${current.code}`;
+        title.textContent = current.title;
+        if (current.archiveId) {
+          action.textContent = 'Open current mission →';
+          card.href = `/episodes/${current.archiveId}/`;
+        } else {
+          action.textContent = 'Open watch order →';
+          card.href = '/watch-order';
+        }
+      };
+
+      window.addEventListener('chevron-watch-change', render);
+      render();
+    })();
+  </script>
 
   <style>
     .log-hero { padding: 5rem 0 3.5rem; border-bottom: 1px solid var(--line); background: radial-gradient(circle at 82% 18%, rgba(212,167,76,.08), transparent 22rem); }
