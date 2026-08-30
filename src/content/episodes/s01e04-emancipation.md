@@ -19,6 +19,11 @@ worlds: []
 technology:
   - "Stargate"
 arcs: []
+quotes:
+  - text: "What is an Oprah?"
+    speaker: "Teal'c"
+    tier: advanced
+    note: "An early demonstration that Earth pop culture may be harder to decode than Goa'uld strategy."
 narrativeThreads: []
 spoilerLevel: episode
 rewatchRating: 3
