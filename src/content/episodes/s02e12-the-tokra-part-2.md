@@ -24,7 +24,11 @@ technology:
 arcs:
   - "Tok'ra alliance"
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "tokra-alliance"
+    role: turning-point
+    relevance: primary
+    note: "Jacob's blending with Selmak creates the personal bridge that turns cautious contact into a working alliance."
 spoilerLevel: episode
 rewatchRating: 5
 featured: false
