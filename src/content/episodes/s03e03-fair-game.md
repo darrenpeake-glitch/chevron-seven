@@ -41,6 +41,10 @@ biggerPicture:
     - "Goa'uld political order"
     - "Unknown Asgard adversary"
   fullContext: "Thor's unnamed adversary is the Replicators. This brief disclosure is an early breadcrumb for a conflict that later becomes one of SG-1's major storylines and helps explain why the technologically superior Asgard cannot simply solve Earth's Goa'uld problem for them."
+  fullContextUnlock:
+    series: SG-1
+    season: 3
+    episode: 22
 oneillSarcasm: 8
 tealcEyebrow: moderate
 rewatchRating: 4
