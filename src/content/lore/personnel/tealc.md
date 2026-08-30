@@ -6,9 +6,28 @@ summary: "A former First Prime whose defection gives Earth both a formidable all
 spoilerLevel: episode
 safeThrough:
   series: SG-1
-  season: 3
-  episode: 4
-status: "REWATCH-SAFE PROFILE"
+  season: 1
+  episode: 1
+revelations:
+  - after:
+      series: SG-1
+      season: 1
+      episode: 12
+    heading: "The rebellion has a family cost"
+    text: "Bloodlines reveals Teal'c's son Rya'c and shows that his defection from Apophis was not an isolated military choice. His rebellion carries direct consequences for the family he left behind."
+  - after:
+      series: SG-1
+      season: 2
+      episode: 8
+    heading: "Jaffa freedom becomes explicit"
+    text: "Family makes Teal'c's long-term purpose unmistakable: resisting Goa'uld domination is not just personal vengeance. He wants other Jaffa to recognize that the Goa'uld are false gods and can be opposed."
+  - after:
+      series: SG-1
+      season: 3
+      episode: 9
+    heading: "A symbol beyond SG-1"
+    text: "Rules of Engagement shows how powerful the idea of SG-1 and Teal'c's rebellion has become beyond Earth. Even distorted copies of their mission can influence people living under Goa'uld military culture."
+status: "PROGRESSIVE PROFILE"
 aliases: []
 draft: false
 ---
@@ -36,7 +55,3 @@ He is both frontline combatant and cultural intelligence source. Where Earth per
 - Carries deep knowledge of Goa'uld society.
 - Committed to the possibility of Jaffa freedom.
 - Increasingly curious about Earth customs.
-
-## Rewatch Position
-
-This profile contains only information established by **SG-1 S03E04 — Legacy**.
