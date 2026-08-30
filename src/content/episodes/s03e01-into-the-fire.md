@@ -24,7 +24,11 @@ technology:
 arcs:
   - "Tok'ra alliance"
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "jaffa-freedom"
+    role: development
+    relevance: primary
+    note: "Bra'tac and loyal Jaffa fighting Hathor show that Teal'c's rebellion is part of a growing resistance rather than an isolated act."
 spoilerLevel: episode
 rewatchRating: 5
 featured: false
