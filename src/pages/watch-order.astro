@@ -1,0 +1,148 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { watchOrder, codeForWatchEntry, watchKeyForEpisode } from '../lib/watch-order';
+
+const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
+const archivedByKey = new Map(episodes.map((entry) => [watchKeyForEpisode(entry.data.series, entry.data.season, entry.data.episode), entry]));
+const entries = watchOrder.map((entry, index) => ({
+  ...entry,
+  index,
+  displayTitle: archivedByKey.get(entry.key)?.data.title ?? entry.title,
+  archiveId: archivedByKey.get(entry.key)?.id ?? null
+}));
+---
+<BaseLayout title="Watch Order · Chevron Seven" description="A start-to-finish Stargate franchise watch order with spoiler-safe progress tracking.">
+  <section class="watch-hero">
+    <div class="shell watch-hero-grid">
+      <div>
+        <div class="eyebrow">Spoiler-safe franchise journey</div>
+        <h1 class="episode-title">Watch Order</h1>
+        <p class="lede">One route from the 1994 film through SG-1, Atlantis and Universe. Confirm what you have watched and Chevron Seven uses that progress as the boundary for narrative reveals.</p>
+      </div>
+      <aside class="watch-summary">
+        <span class="mission-label">Your progress</span>
+        <strong id="watch-progress-count">0 / {entries.length}</strong>
+        <span id="watch-progress-percent">0% complete</span>
+      </aside>
+    </div>
+  </section>
+
+  <section class="mission-bar">
+    <div class="shell mission-bar-inner">
+      <div><span class="mission-label">Franchise entries</span><strong>{entries.length}</strong></div>
+      <div><span class="mission-label">Progress storage</span><strong>This browser</strong></div>
+      <div><span class="mission-label">Spoiler rule</span><strong>Reveal only what you've watched</strong></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell watch-layout">
+      <main>
+        <div class="watch-continue" id="watch-continue">
+          <div><div class="eyebrow">Continue watching</div><h2 id="watch-next-title">Start the journey</h2><p id="watch-next-meta">Your first unwatched entry will appear here.</p></div>
+          <button class="button secondary" id="watch-clear" type="button">Reset progress</button>
+        </div>
+
+        <div class="watch-list" id="watch-list">
+          {entries.map((entry) => (
+            <div class="watch-row" data-watch-key={entry.key} data-watch-index={entry.index}>
+              <button class="watch-check" type="button" aria-label={`Toggle watched: ${entry.displayTitle}`} title="Mark watched">○</button>
+              <div class="watch-copy">
+                <div class="watch-meta"><span>{entry.series}</span><span>{codeForWatchEntry(entry)}</span></div>
+                {entry.archiveId ? <a href={`/episodes/${entry.archiveId}/`}><strong>{entry.displayTitle}</strong></a> : <strong>{entry.displayTitle}</strong>}
+              </div>
+              <button class="watch-through" type="button" title="Mark this entry and everything before it watched">Mark through</button>
+            </div>
+          ))}
+        </div>
+      </main>
+
+      <aside class="watch-sidebar">
+        <div class="sidebar-panel">
+          <div class="eyebrow">How progress works</div>
+          <p>Watched state is saved only in this browser. No account or database is required.</p>
+        </div>
+        <div class="sidebar-panel">
+          <div class="eyebrow">Why it matters</div>
+          <p>Narrative Threads and other spoiler-aware features can use this state instead of guessing your position from the archive.</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <script id="watch-order-data" type="application/json" set:html={JSON.stringify(entries.map(({ key, series, season, episode, displayTitle, index }) => ({ key, series, season, episode, title: displayTitle, index })))}></script>
+  <script src="/watch-progress.js"></script>
+  <script is:inline>
+    (() => {
+      const entries = JSON.parse(document.getElementById('watch-order-data').textContent || '[]');
+      const rows = [...document.querySelectorAll('.watch-row')];
+      const progressCount = document.getElementById('watch-progress-count');
+      const progressPercent = document.getElementById('watch-progress-percent');
+      const nextTitle = document.getElementById('watch-next-title');
+      const nextMeta = document.getElementById('watch-next-meta');
+
+      const render = () => {
+        const watched = new Set(window.ChevronWatch.load());
+        rows.forEach((row) => {
+          const isWatched = watched.has(row.dataset.watchKey);
+          row.classList.toggle('is-watched', isWatched);
+          row.querySelector('.watch-check').textContent = isWatched ? '✓' : '○';
+        });
+        const count = entries.filter((entry) => watched.has(entry.key)).length;
+        progressCount.textContent = `${count} / ${entries.length}`;
+        progressPercent.textContent = `${Math.round((count / entries.length) * 100)}% complete`;
+        const next = entries.find((entry) => !watched.has(entry.key));
+        if (next) {
+          nextTitle.textContent = next.title;
+          const code = next.season ? `S${String(next.season).padStart(2,'0')}E${String(next.episode).padStart(2,'0')}` : 'Feature';
+          nextMeta.textContent = `${next.series} · ${code}`;
+        } else {
+          nextTitle.textContent = 'Franchise complete';
+          nextMeta.textContent = 'Every entry in this watch order is marked watched.';
+        }
+      };
+
+      rows.forEach((row) => {
+        row.querySelector('.watch-check').addEventListener('click', () => {
+          window.ChevronWatch.mark(row.dataset.watchKey, !window.ChevronWatch.watched(row.dataset.watchKey));
+        });
+        row.querySelector('.watch-through').addEventListener('click', () => {
+          const index = Number(row.dataset.watchIndex);
+          window.ChevronWatch.markThrough(entries.slice(0, index + 1).map((entry) => entry.key));
+        });
+      });
+      document.getElementById('watch-clear').addEventListener('click', () => {
+        if (confirm('Reset all Chevron Seven watch progress in this browser?')) window.ChevronWatch.clear();
+      });
+      window.addEventListener('chevron-watch-change', render);
+      render();
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .watch-hero { padding:6.2rem 0 3.5rem; border-bottom:1px solid var(--line); background:radial-gradient(circle at 82% 15%,rgba(212,167,76,.08),transparent 25rem); }
+  .watch-hero-grid { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:3rem; align-items:end; }
+  .watch-summary { padding:1.2rem; border:1px solid var(--line); border-radius:14px; background:var(--panel); display:grid; gap:.35rem; }
+  .watch-summary strong { color:var(--accent); font-size:1.7rem; }
+  .watch-summary > span:last-child { color:var(--muted); }
+  .watch-layout { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:2rem; align-items:start; }
+  .watch-sidebar { position:sticky; top:96px; display:grid; gap:1rem; }
+  .watch-sidebar p { color:var(--muted); line-height:1.6; font-size:.88rem; }
+  .watch-continue { margin-bottom:1rem; padding:1.3rem; border:1px solid var(--accent-soft); border-radius:14px; background:rgba(212,167,76,.055); display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+  .watch-continue h2 { margin:.35rem 0 .2rem; }
+  .watch-continue p { margin:0; color:var(--muted); }
+  .watch-list { display:grid; border-top:1px solid var(--line); }
+  .watch-row { display:grid; grid-template-columns:44px minmax(0,1fr) auto; gap:1rem; align-items:center; min-height:72px; border-bottom:1px solid var(--line); }
+  .watch-row.is-watched { opacity:.62; }
+  .watch-row.is-watched .watch-copy strong { text-decoration:line-through; text-decoration-color:rgba(212,167,76,.45); }
+  .watch-check { width:34px; height:34px; border:1px solid var(--accent-soft); border-radius:50%; background:transparent; color:var(--accent); cursor:pointer; font-weight:900; }
+  .watch-copy { display:grid; gap:.25rem; min-width:0; }
+  .watch-copy a { text-decoration:none; }
+  .watch-copy a:hover strong { color:var(--accent); }
+  .watch-meta { display:flex; gap:.6rem; color:var(--muted); font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; }
+  .watch-through { border:0; background:transparent; color:var(--muted); cursor:pointer; font-size:.76rem; }
+  .watch-through:hover { color:var(--accent); }
+  @media (max-width:760px) { .watch-hero-grid,.watch-layout { grid-template-columns:1fr; } .watch-sidebar { position:static; } .watch-row { grid-template-columns:40px minmax(0,1fr); } .watch-through { grid-column:2; justify-self:start; padding:0 0 .8rem; } .watch-continue { align-items:flex-start; flex-direction:column; } }
+</style>
