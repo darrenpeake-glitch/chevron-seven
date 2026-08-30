@@ -3,6 +3,7 @@ import '../styles/global.css';
 import '../styles/archive.css';
 import '../styles/lore.css';
 import '../styles/bigger-picture.css';
+import '../styles/brand.css';
 
 interface Props {
   title?: string;
@@ -20,12 +21,16 @@ const {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/brand/chevron-seven-mark.svg" />
     <title>{title}</title>
   </head>
   <body>
     <header class="site-header">
       <div class="shell header-inner">
-        <a class="brand" href="/">Chevron <span>Seven</span></a>
+        <a class="brand" href="/" aria-label="Chevron Seven home">
+          <img class="brand-mark" src="/brand/chevron-seven-mark.svg" alt="" width="34" height="40" />
+          <span class="brand-wordmark">Chevron <span>Seven</span></span>
+        </a>
         <nav aria-label="Primary navigation">
           <a href="/watch-order">Watch Order</a>
           <a href="/episodes">Mission Log</a>
