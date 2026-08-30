@@ -26,7 +26,11 @@ arcs:
   - "Asgard–Tau'ri relationship"
   - "Jaffa resistance"
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "asgard-tauri-relationship"
+    role: breadcrumb
+    relevance: primary
+    note: "Thor is still a name and a body of technology rather than a known ally, but Cimmeria establishes the first clear Asgard protection system encountered by SG-1."
 spoilerLevel: episode
 rewatchRating: 5
 featured: false
