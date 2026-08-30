@@ -1,6 +1,9 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
+const threadRole = z.enum(['breadcrumb', 'development', 'escalation', 'reveal', 'turning-point', 'payoff', 'aftermath']);
+const relevance = z.enum(['primary', 'secondary']);
+
 const episodes = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/episodes' }),
   schema: z.object({
@@ -15,6 +18,12 @@ const episodes = defineCollection({
     worlds: z.array(z.string()).default([]),
     technology: z.array(z.string()).default([]),
     arcs: z.array(z.string()).default([]),
+    narrativeThreads: z.array(z.object({
+      thread: z.string(),
+      role: threadRole,
+      relevance: relevance.default('primary'),
+      note: z.string().optional()
+    })).default([]),
     spoilerLevel: z.enum(['episode', 'season', 'series']).default('episode'),
     biggerPicture: z.object({
       summary: z.string(),
@@ -48,4 +57,17 @@ const lore = defineCollection({
   })
 });
 
-export const collections = { episodes, lore };
+const threads = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/threads' }),
+  schema: z.object({
+    name: z.string(),
+    summary: z.string(),
+    scope: z.enum(['SG-1', 'Atlantis', 'Universe', 'Franchise']),
+    spoilerLevel: z.enum(['episode', 'season', 'series', 'franchise']).default('series'),
+    status: z.string().default('ACTIVE THREAD'),
+    aliases: z.array(z.string()).default([]),
+    draft: z.boolean().default(false)
+  })
+});
+
+export const collections = { episodes, lore, threads };
