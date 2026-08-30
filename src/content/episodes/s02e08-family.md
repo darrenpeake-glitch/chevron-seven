@@ -23,6 +23,9 @@ technology:
 arcs:
   - "Jaffa resistance"
   - "Goa'uld conflict"
+previouslyRelevant:
+  - watchKey: "sg1:1:12"
+    reason: "Teal'c returns to Chulak for the first time, revealing Rya'c, Drey'auc and the personal cost of abandoning Apophis."
 narrativeThreads:
   - thread: "jaffa-freedom"
     role: escalation
