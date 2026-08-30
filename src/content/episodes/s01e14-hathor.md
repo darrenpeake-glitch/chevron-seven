@@ -23,7 +23,11 @@ technology:
   - "Sarcophagus"
 arcs:
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "goauld-political-order"
+    role: breadcrumb
+    relevance: secondary
+    note: "Hathor hints that Goa'uld rulers have histories and agendas independent of Apophis, widening the political map beyond a single enemy."
 spoilerLevel: episode
 rewatchRating: 4
 featured: false
