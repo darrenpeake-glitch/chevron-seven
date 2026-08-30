@@ -22,6 +22,11 @@ technology:
   - "Stargate"
 arcs:
   - "Tok'ra alliance"
+connections:
+  - Tokra
+  - First contact
+  - Goauld politics
+continuityWeight: mythology
 previouslyRelevant:
   - watchKey: "sg1:2:2"
     reason: "Jolinar's brief blending with Carter leaves the memories that allow SG-1 to locate the Tok'ra and understand why this apparently Goa'uld faction may be different."
