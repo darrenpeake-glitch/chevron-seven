@@ -62,6 +62,7 @@ const spoilerCopy = d.spoilerLevel === 'episode'
   : d.spoilerLevel === 'season'
     ? 'May reference later events in this season.'
     : 'Full-series retrospective spoilers possible.';
+const continuityLabel = d.continuityWeight.charAt(0).toUpperCase() + d.continuityWeight.slice(1);
 ---
 <BaseLayout title={`${d.title} · Chevron Seven`} description={`${d.series} ${episodeCode} — ${d.title}. Chevron Seven mission file.`}>
   <section class="mission-hero">
@@ -203,6 +204,16 @@ const spoilerCopy = d.spoilerLevel === 'episode'
         </div>
 
         <div data-watch-when="watched" hidden>
+          <div class="sidebar-panel gated-sidebar-panel continuity-panel">
+            <div class="eyebrow">Continuity profile</div>
+            <div class="continuity-weight"><span>Weight</span><strong>{continuityLabel}</strong></div>
+            {d.connections.length > 0 ? (
+              <div class="connection-pills">{d.connections.map((item) => <span>{item}</span>)}</div>
+            ) : (
+              <p class="continuity-empty">No specialist connection tags assigned.</p>
+            )}
+          </div>
+
           <div class="sidebar-panel gated-sidebar-panel">
             <div class="eyebrow">Chevron Seven metrics</div>
             <div class="metric-list">
@@ -284,16 +295,23 @@ const spoilerCopy = d.spoilerLevel === 'episode'
   .previously-relevant-copy > strong { color:var(--text); }
   .previously-relevant-copy span { color:var(--muted); font-size:.82rem; line-height:1.5; }
   .previously-relevant-list a > b { color:var(--muted); text-align:right; }
-  .episode-thread-links { margin: 0 0 1.4rem; padding: 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: rgba(17,23,27,.72); }
-  .episode-thread-links h2 { margin: .35rem 0 1rem; }
-  .episode-thread-list { display: grid; }
-  .episode-thread-list a { display: flex; justify-content: space-between; gap: 1.2rem; align-items: center; padding: .9rem 0; border-top: 1px solid var(--line); text-decoration: none; }
-  .episode-thread-list a > div:first-child { display: grid; gap: .25rem; }
-  .episode-thread-list a strong { color: var(--accent); }
-  .episode-thread-list a span { color: var(--muted); font-size: .82rem; line-height: 1.45; }
-  .episode-thread-meta { display: flex; gap: .4rem; align-items: center; white-space: nowrap; }
-  .episode-thread-meta span { padding: .2rem .45rem; border: 1px solid var(--line); border-radius: 999px; text-transform: uppercase; font-size: .66rem !important; letter-spacing: .04em; }
-  .episode-thread-meta b { color: var(--accent); }
+  .episode-thread-links { margin:0 0 1.4rem; padding:1.2rem; border:1px solid var(--line); border-radius:14px; background:rgba(17,23,27,.72); }
+  .episode-thread-links h2 { margin:.35rem 0 1rem; }
+  .episode-thread-list { display:grid; }
+  .episode-thread-list a { display:flex; justify-content:space-between; gap:1.2rem; align-items:center; padding:.9rem 0; border-top:1px solid var(--line); text-decoration:none; }
+  .episode-thread-list a > div:first-child { display:grid; gap:.25rem; }
+  .episode-thread-list a strong { color:var(--accent); }
+  .episode-thread-list a span { color:var(--muted); font-size:.82rem; line-height:1.45; }
+  .episode-thread-meta { display:flex; gap:.4rem; align-items:center; white-space:nowrap; }
+  .episode-thread-meta span { padding:.2rem .45rem; border:1px solid var(--line); border-radius:999px; text-transform:uppercase; font-size:.66rem !important; letter-spacing:.04em; }
+  .episode-thread-meta b { color:var(--accent); }
+  .continuity-panel { display:grid; gap:.8rem; }
+  .continuity-weight { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding-bottom:.7rem; border-bottom:1px solid var(--line); }
+  .continuity-weight span { color:var(--muted); font-size:.78rem; }
+  .continuity-weight strong { color:var(--accent); text-transform:uppercase; letter-spacing:.06em; font-size:.78rem; }
+  .connection-pills { display:flex; flex-wrap:wrap; gap:.4rem; }
+  .connection-pills span { padding:.22rem .48rem; border:1px solid var(--line); border-radius:999px; color:var(--muted); font-size:.7rem; }
+  .continuity-empty { margin:0; color:var(--muted); font-size:.76rem; line-height:1.45; }
   .watch-panel { display:grid; gap:.7rem; }
   .watch-state { color:var(--muted); }
   .watch-state.is-watched { color:var(--accent); }
@@ -304,7 +322,7 @@ const spoilerCopy = d.spoilerLevel === 'episode'
   .watch-order-link { margin-top:.15rem; font-size:.78rem; }
   .gated-sidebar-panel { margin-top:1rem; }
   [hidden] { display:none !important; }
-  @media (max-width: 650px) {
+  @media (max-width:650px) {
     .episode-thread-list a { align-items:flex-start; flex-direction:column; }
     .previously-relevant-list a { grid-template-columns:1fr 20px; gap:.45rem .8rem; }
     .previously-relevant-code { grid-column:1; display:flex; gap:.5rem; align-items:center; }
