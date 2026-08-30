@@ -24,6 +24,11 @@ technology:
 arcs:
   - "Asgard–Tau'ri relationship"
   - "Goa'uld conflict"
+quotes:
+  - text: "Things will not calm down, Daniel Jackson. They will, in fact, calm up!"
+    speaker: "Teal'c"
+    tier: intermediate
+    note: "Teal'c discovers that idioms are apparently negotiable."
 previouslyRelevant:
   - watchKey: "sg1:1:10"
     reason: "SG-1 first encounters Cimmeria, Thor's Hammer and the evidence that a powerful alien culture stands behind Norse mythology."
