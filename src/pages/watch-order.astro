@@ -11,6 +11,17 @@ const entries = watchOrder.map((entry, index) => ({
   displayTitle: archivedByKey.get(entry.key)?.data.title ?? entry.title,
   archiveId: archivedByKey.get(entry.key)?.id ?? null
 }));
+
+const groups: any[] = [];
+for (const entry of entries) {
+  const current = groups.at(-1);
+  if (!current || current.label !== entry.group) {
+    groups.push({ label: entry.group, entries: [entry], start: entry.index, end: entry.index });
+  } else {
+    current.entries.push(entry);
+    current.end = entry.index;
+  }
+}
 ---
 <BaseLayout title="Watch Order · Chevron Seven" description="A start-to-finish Stargate franchise watch order with spoiler-safe progress tracking.">
   <section class="watch-hero">
@@ -40,20 +51,40 @@ const entries = watchOrder.map((entry, index) => ({
     <div class="shell watch-layout">
       <main>
         <div class="watch-continue" id="watch-continue">
-          <div><div class="eyebrow">Continue watching</div><h2 id="watch-next-title">Start the journey</h2><p id="watch-next-meta">Your first unwatched entry will appear here.</p></div>
-          <button class="button secondary" id="watch-clear" type="button">Reset progress</button>
+          <div>
+            <div class="eyebrow">Continue watching</div>
+            <h2 id="watch-next-title">Start the journey</h2>
+            <p id="watch-next-meta">Your first unwatched entry will appear here.</p>
+          </div>
+          <button class="watch-reset" id="watch-clear" type="button">Reset progress</button>
         </div>
 
-        <div class="watch-list" id="watch-list">
-          {entries.map((entry) => (
-            <div class="watch-row" data-watch-key={entry.key} data-watch-index={entry.index}>
-              <button class="watch-check" type="button" aria-label={`Toggle watched: ${entry.displayTitle}`} title="Mark watched">○</button>
-              <div class="watch-copy">
-                <div class="watch-meta"><span>{entry.series}</span><span>{codeForWatchEntry(entry)}</span></div>
-                {entry.archiveId ? <a href={`/episodes/${entry.archiveId}/`}><strong>{entry.displayTitle}</strong></a> : <strong>{entry.displayTitle}</strong>}
+        <div class="watch-groups" id="watch-list">
+          {groups.map((group, groupIndex) => (
+            <details class="watch-group" data-start={group.start} data-end={group.end} open={groupIndex === 0}>
+              <summary>
+                <div>
+                  <span class="eyebrow">Watch block</span>
+                  <strong>{group.label}</strong>
+                </div>
+                <div class="watch-group-progress">
+                  <span data-group-progress>{group.entries.length} entries</span>
+                  <b>⌄</b>
+                </div>
+              </summary>
+              <div class="watch-list">
+                {group.entries.map((entry) => (
+                  <div class="watch-row" data-watch-key={entry.key} data-watch-index={entry.index}>
+                    <button class="watch-check" type="button" aria-label={`Toggle watched: ${entry.displayTitle}`} title="Mark watched">○</button>
+                    <div class="watch-copy">
+                      <div class="watch-meta"><span>{entry.series}</span><span>{codeForWatchEntry(entry)}</span></div>
+                      {entry.archiveId ? <a href={`/episodes/${entry.archiveId}/`}><strong>{entry.displayTitle}</strong></a> : <strong>{entry.displayTitle}</strong>}
+                    </div>
+                    <button class="watch-through" type="button" title="Mark this entry and everything before it watched">Mark through</button>
+                  </div>
+                ))}
               </div>
-              <button class="watch-through" type="button" title="Mark this entry and everything before it watched">Mark through</button>
-            </div>
+            </details>
           ))}
         </div>
       </main>
@@ -65,7 +96,7 @@ const entries = watchOrder.map((entry, index) => ({
         </div>
         <div class="sidebar-panel">
           <div class="eyebrow">Why it matters</div>
-          <p>Narrative Threads and other spoiler-aware features can use this state instead of guessing your position from the archive.</p>
+          <p>Narrative Threads and other spoiler-aware features use this state instead of guessing your position from the archive.</p>
         </div>
       </aside>
     </div>
@@ -77,6 +108,7 @@ const entries = watchOrder.map((entry, index) => ({
     (() => {
       const entries = JSON.parse(document.getElementById('watch-order-data').textContent || '[]');
       const rows = [...document.querySelectorAll('.watch-row')];
+      const groups = [...document.querySelectorAll('.watch-group')];
       const progressCount = document.getElementById('watch-progress-count');
       const progressPercent = document.getElementById('watch-progress-percent');
       const nextTitle = document.getElementById('watch-next-title');
@@ -89,14 +121,27 @@ const entries = watchOrder.map((entry, index) => ({
           row.classList.toggle('is-watched', isWatched);
           row.querySelector('.watch-check').textContent = isWatched ? '✓' : '○';
         });
+
         const count = entries.filter((entry) => watched.has(entry.key)).length;
         progressCount.textContent = `${count} / ${entries.length}`;
         progressPercent.textContent = `${Math.round((count / entries.length) * 100)}% complete`;
+
+        groups.forEach((group) => {
+          const start = Number(group.dataset.start);
+          const end = Number(group.dataset.end);
+          const blockEntries = entries.filter((entry) => entry.index >= start && entry.index <= end);
+          const blockWatched = blockEntries.filter((entry) => watched.has(entry.key)).length;
+          group.querySelector('[data-group-progress]').textContent = `${blockWatched} / ${blockEntries.length} watched`;
+          group.classList.toggle('is-complete', blockWatched === blockEntries.length);
+        });
+
         const next = entries.find((entry) => !watched.has(entry.key));
         if (next) {
           nextTitle.textContent = next.title;
           const code = next.season ? `S${String(next.season).padStart(2,'0')}E${String(next.episode).padStart(2,'0')}` : 'Feature';
           nextMeta.textContent = `${next.series} · ${code}`;
+          const activeGroup = groups.find((group) => next.index >= Number(group.dataset.start) && next.index <= Number(group.dataset.end));
+          if (activeGroup) activeGroup.open = true;
         } else {
           nextTitle.textContent = 'Franchise complete';
           nextMeta.textContent = 'Every entry in this watch order is marked watched.';
@@ -112,9 +157,11 @@ const entries = watchOrder.map((entry, index) => ({
           window.ChevronWatch.markThrough(entries.slice(0, index + 1).map((entry) => entry.key));
         });
       });
+
       document.getElementById('watch-clear').addEventListener('click', () => {
         if (confirm('Reset all Chevron Seven watch progress in this browser?')) window.ChevronWatch.clear();
       });
+
       window.addEventListener('chevron-watch-change', render);
       render();
     })();
@@ -133,9 +180,23 @@ const entries = watchOrder.map((entry, index) => ({
   .watch-continue { margin-bottom:1rem; padding:1.3rem; border:1px solid var(--accent-soft); border-radius:14px; background:rgba(212,167,76,.055); display:flex; justify-content:space-between; align-items:center; gap:1rem; }
   .watch-continue h2 { margin:.35rem 0 .2rem; }
   .watch-continue p { margin:0; color:var(--muted); }
-  .watch-list { display:grid; border-top:1px solid var(--line); }
-  .watch-row { display:grid; grid-template-columns:44px minmax(0,1fr) auto; gap:1rem; align-items:center; min-height:72px; border-bottom:1px solid var(--line); }
-  .watch-row.is-watched { opacity:.62; }
+  .watch-reset { padding:.62rem .85rem; border:1px solid var(--line); border-radius:8px; background:transparent; color:var(--muted); cursor:pointer; font:inherit; font-size:.78rem; }
+  .watch-reset:hover { color:var(--accent); border-color:var(--accent-soft); }
+  .watch-groups { display:grid; gap:.75rem; }
+  .watch-group { border:1px solid var(--line); border-radius:12px; overflow:hidden; background:rgba(17,23,27,.35); }
+  .watch-group > summary { list-style:none; cursor:pointer; display:flex; justify-content:space-between; gap:1rem; align-items:center; padding:1rem 1.15rem; }
+  .watch-group > summary::-webkit-details-marker { display:none; }
+  .watch-group > summary > div:first-child { display:grid; gap:.22rem; }
+  .watch-group > summary strong { font-size:1rem; }
+  .watch-group[open] > summary { border-bottom:1px solid var(--line); background:rgba(212,167,76,.035); }
+  .watch-group.is-complete > summary strong { color:var(--muted); }
+  .watch-group-progress { display:flex; gap:.65rem; align-items:center; color:var(--muted); font-size:.74rem; }
+  .watch-group-progress b { color:var(--accent); font-size:1rem; transition:transform .15s ease; }
+  .watch-group[open] .watch-group-progress b { transform:rotate(180deg); }
+  .watch-list { display:grid; }
+  .watch-row { display:grid; grid-template-columns:44px minmax(0,1fr) auto; gap:1rem; align-items:center; min-height:68px; padding:0 1.05rem; border-bottom:1px solid var(--line); }
+  .watch-row:last-child { border-bottom:0; }
+  .watch-row.is-watched { opacity:.58; }
   .watch-row.is-watched .watch-copy strong { text-decoration:line-through; text-decoration-color:rgba(212,167,76,.45); }
   .watch-check { width:34px; height:34px; border:1px solid var(--accent-soft); border-radius:50%; background:transparent; color:var(--accent); cursor:pointer; font-weight:900; }
   .watch-copy { display:grid; gap:.25rem; min-width:0; }
@@ -144,5 +205,11 @@ const entries = watchOrder.map((entry, index) => ({
   .watch-meta { display:flex; gap:.6rem; color:var(--muted); font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; }
   .watch-through { border:0; background:transparent; color:var(--muted); cursor:pointer; font-size:.76rem; }
   .watch-through:hover { color:var(--accent); }
-  @media (max-width:760px) { .watch-hero-grid,.watch-layout { grid-template-columns:1fr; } .watch-sidebar { position:static; } .watch-row { grid-template-columns:40px minmax(0,1fr); } .watch-through { grid-column:2; justify-self:start; padding:0 0 .8rem; } .watch-continue { align-items:flex-start; flex-direction:column; } }
+  @media (max-width:760px) {
+    .watch-hero-grid,.watch-layout { grid-template-columns:1fr; }
+    .watch-sidebar { position:static; }
+    .watch-row { grid-template-columns:40px minmax(0,1fr); }
+    .watch-through { grid-column:2; justify-self:start; padding:0 0 .8rem; }
+    .watch-continue,.watch-group > summary { align-items:flex-start; flex-direction:column; }
+  }
 </style>
