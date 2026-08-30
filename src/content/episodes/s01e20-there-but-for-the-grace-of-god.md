@@ -24,6 +24,11 @@ technology:
   - "Quantum mirror"
 arcs:
   - "Goa'uld conflict"
+connections:
+  - Alternate reality
+  - Technology
+  - Goauld politics
+continuityWeight: essential
 narrativeThreads:
   - thread: "earth-technological-rise"
     role: development
