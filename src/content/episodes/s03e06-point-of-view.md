@@ -28,6 +28,11 @@ technology:
 arcs:
   - Alternate realities
   - Asgard–Tau'ri alliance
+previouslyRelevant:
+  - watchKey: "sg1:1:20"
+    reason: "There But for the Grace of God introduces the quantum mirror and establishes an alternate Earth destroyed by the Goa'uld, providing the rules and stakes for returning to another reality."
+  - watchKey: "sg1:2:6"
+    reason: "Thor's Chariot establishes the Asgard as a real intervention-capable power, making SG-1's attempt to summon their help in the alternate reality meaningful."
 narrativeThreads: []
 spoilerLevel: episode
 oneillSarcasm: 5
