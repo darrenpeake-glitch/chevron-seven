@@ -6,9 +6,28 @@ summary: "SG-1's scientific specialist, combining theoretical physics with field
 spoilerLevel: episode
 safeThrough:
   series: SG-1
-  season: 3
-  episode: 4
-status: "REWATCH-SAFE PROFILE"
+  season: 1
+  episode: 1
+revelations:
+  - after:
+      series: SG-1
+      season: 2
+      episode: 2
+    heading: "Jolinar's legacy"
+    text: "In the Line of Duty leaves Carter with memories and physiological traces from the Tok'ra Jolinar. From this point onward, her connection to Goa'uld and Tok'ra biology is personal as well as scientific."
+  - after:
+      series: SG-1
+      season: 2
+      episode: 11
+    heading: "A bridge to the Tok'ra"
+    text: "The Tok'ra recognize Jolinar's memories inside Carter, making her uniquely important to the developing relationship between Earth and the Tok'ra resistance."
+  - after:
+      series: SG-1
+      season: 3
+      episode: 6
+    heading: "Alternate-path perspective"
+    text: "Point of View confronts Carter with an alternate reality in which her counterpart followed a very different personal path, while reinforcing how central her scientific judgment is to SG-1's survival."
+status: "PROGRESSIVE PROFILE"
 aliases:
   - "Captain Carter"
   - "Sam"
@@ -37,7 +56,3 @@ She is usually the first member of the team to turn an impossible-looking phenom
 - Comfortable moving between laboratory reasoning and field action.
 - Frequently responsible for explaining why the current situation is scientifically alarming.
 - Strong sense of duty to both SG-1 and the wider mission of Stargate Command.
-
-## Rewatch Position
-
-This record includes only information established by **SG-1 S03E04 — Legacy**.
