@@ -1,0 +1,51 @@
+.progress-lock {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  margin-top: 1rem;
+  padding: .9rem 1rem;
+  border: 1px dashed rgba(212,167,76,.35);
+  border-radius: 10px;
+  background: rgba(212,167,76,.035);
+  color: var(--muted);
+}
+
+.progress-lock-mark {
+  color: var(--accent);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.progress-lock > div {
+  display: grid;
+  gap: .2rem;
+}
+
+.progress-lock strong {
+  color: var(--text);
+  font-size: .82rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.progress-lock span:last-child {
+  font-size: .8rem;
+  line-height: 1.45;
+}
+
+.lore-revelation {
+  margin-top: 1.4rem;
+  padding: 1.1rem;
+  border-left: 2px solid var(--accent-soft);
+  background: rgba(212,167,76,.025);
+}
+
+.lore-revelation h3 {
+  margin: .25rem 0 .55rem;
+}
+
+.lore-revelation p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
