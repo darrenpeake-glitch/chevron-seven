@@ -25,7 +25,11 @@ technology:
 arcs:
   - "Jaffa resistance"
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "jaffa-freedom"
+    role: reveal
+    relevance: primary
+    note: "Teal'c's defection is the founding act of the Jaffa-freedom thread: a First Prime choosing that Goa'uld authority can be refused."
 spoilerLevel: episode
 rewatchRating: 4
 featured: false
