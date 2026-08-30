@@ -24,4 +24,23 @@ const episodes = defineCollection({
   })
 });
 
-export const collections = { episodes };
+const lore = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/lore' }),
+  schema: z.object({
+    name: z.string(),
+    type: z.enum(['personnel', 'factions', 'worlds', 'technology', 'arcs']),
+    subtitle: z.string().optional(),
+    summary: z.string(),
+    spoilerLevel: z.enum(['episode', 'season', 'series']).default('episode'),
+    safeThrough: z.object({
+      series: z.enum(['SG-1', 'Atlantis', 'Universe']),
+      season: z.number().int().positive(),
+      episode: z.number().int().positive()
+    }).optional(),
+    status: z.string().default('CURATED RECORD'),
+    aliases: z.array(z.string()).default([]),
+    draft: z.boolean().default(false)
+  })
+});
+
+export const collections = { episodes, lore };
