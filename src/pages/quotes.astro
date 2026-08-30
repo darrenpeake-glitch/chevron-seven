@@ -1,0 +1,139 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { watchKeyForEpisode } from '../lib/watch-order';
+
+const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft && entry.data.quotes.length > 0);
+const films = (await getCollection('films')).filter((entry) => !entry.data.draft && entry.data.quotes.length > 0);
+
+const quoteRecords = [
+  ...episodes.flatMap((entry) => entry.data.quotes.map((quote) => ({
+    ...quote,
+    watchKey: watchKeyForEpisode(entry.data.series, entry.data.season, entry.data.episode),
+    series: entry.data.series,
+    code: `S${String(entry.data.season).padStart(2, '0')}E${String(entry.data.episode).padStart(2, '0')}`,
+    title: entry.data.title,
+    href: `/episodes/${entry.id}/`
+  }))),
+  ...films.flatMap((entry) => entry.data.quotes.map((quote) => ({
+    ...quote,
+    watchKey: entry.data.watchKey,
+    series: 'Film',
+    code: 'FEATURE',
+    title: entry.data.title,
+    href: `/films/${entry.id}/`
+  })))
+];
+
+const tierLabel = (tier: string) => tier === 'deep-cut' ? 'Deep Cut' : tier.charAt(0).toUpperCase() + tier.slice(1);
+---
+<BaseLayout title="Quote File · Chevron Seven" description="Classic Stargate quotes unlocked by your rewatch progress.">
+  <section class="quote-hero">
+    <div class="shell">
+      <div class="eyebrow">SGC cultural archive</div>
+      <h1 class="episode-title">Quote File</h1>
+      <p class="lede">The lines you remember immediately — and the ones that prove you have probably watched far too much Stargate. Quotes unlock with the missions you have actually watched.</p>
+    </div>
+  </section>
+
+  <section class="quote-controls">
+    <div class="shell quote-controls-inner">
+      <div class="quote-filter" role="group" aria-label="Quote recognition level">
+        <button type="button" class="is-active" data-quote-filter="all">All unlocked</button>
+        <button type="button" data-quote-filter="basic">Basic</button>
+        <button type="button" data-quote-filter="intermediate">Intermediate</button>
+        <button type="button" data-quote-filter="advanced">Advanced</button>
+        <button type="button" data-quote-filter="deep-cut">Deep Cut</button>
+      </div>
+      <div class="quote-count"><strong id="quote-visible-count">0</strong> unlocked</div>
+    </div>
+  </section>
+
+  <section class="section quote-body">
+    <div class="shell">
+      <div class="quote-empty" id="quote-empty">
+        <div class="eyebrow">No quotes unlocked</div>
+        <h2>Your Quote File is still classified.</h2>
+        <p>Mark missions watched and their memorable lines will begin appearing here.</p>
+        <a class="button-primary" href="/watch-order">Open Watch Order</a>
+      </div>
+
+      <div class="quote-grid" id="quote-grid">
+        {quoteRecords.map((quote) => (
+          <a class="quote-card" href={quote.href} data-watch-key={quote.watchKey} data-tier={quote.tier} hidden>
+            <div class="quote-card-top">
+              <span class={`quote-tier tier-${quote.tier}`}>{tierLabel(quote.tier)}</span>
+              <span class="quote-mission">{quote.series} · {quote.code}</span>
+            </div>
+            <blockquote>“{quote.text}”</blockquote>
+            <div class="quote-speaker">— {quote.speaker}</div>
+            {quote.note && <p>{quote.note}</p>}
+            <div class="quote-source">{quote.title} <span>→</span></div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <script is:inline src="/watch-progress.js"></script>
+  <script is:inline>
+    (() => {
+      if (!window.ChevronWatch) return;
+      const cards = [...document.querySelectorAll('.quote-card')];
+      const filters = [...document.querySelectorAll('[data-quote-filter]')];
+      const empty = document.getElementById('quote-empty');
+      const count = document.getElementById('quote-visible-count');
+      let activeTier = 'all';
+
+      const render = () => {
+        const watched = new Set(window.ChevronWatch.load());
+        let visible = 0;
+        cards.forEach((card) => {
+          const unlocked = watched.has(card.dataset.watchKey);
+          const tierMatch = activeTier === 'all' || card.dataset.tier === activeTier;
+          card.hidden = !(unlocked && tierMatch);
+          if (!card.hidden) visible += 1;
+        });
+        count.textContent = String(visible);
+        empty.hidden = visible > 0;
+      };
+
+      filters.forEach((button) => button.addEventListener('click', () => {
+        activeTier = button.dataset.quoteFilter;
+        filters.forEach((item) => item.classList.toggle('is-active', item === button));
+        render();
+      }));
+
+      window.addEventListener('chevron-watch-change', render);
+      render();
+    })();
+  </script>
+
+  <style>
+    .quote-hero { padding:5rem 0 3.4rem; border-bottom:1px solid var(--line); background:radial-gradient(circle at 78% 24%,rgba(212,167,76,.08),transparent 24rem); }
+    .quote-hero .lede { max-width:760px; }
+    .quote-controls { border-bottom:1px solid var(--line); background:#0b1013; }
+    .quote-controls-inner { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding-top:.85rem; padding-bottom:.85rem; }
+    .quote-filter { display:flex; flex-wrap:wrap; gap:.45rem; }
+    .quote-filter button { border:1px solid var(--line); background:transparent; color:var(--muted); padding:.42rem .7rem; border-radius:999px; cursor:pointer; font:inherit; font-size:.75rem; }
+    .quote-filter button:hover,.quote-filter button.is-active { color:var(--accent); border-color:var(--accent-soft); background:rgba(212,167,76,.045); }
+    .quote-count { color:var(--muted); font-size:.8rem; white-space:nowrap; }
+    .quote-count strong { color:var(--text); }
+    .quote-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+    .quote-card { display:grid; align-content:start; min-height:245px; padding:1.3rem; border:1px solid var(--line); border-radius:14px; background:var(--panel); text-decoration:none; transition:border-color .15s ease,transform .15s ease; }
+    .quote-card:hover { border-color:var(--accent-soft); transform:translateY(-2px); }
+    .quote-card-top { display:flex; justify-content:space-between; gap:1rem; align-items:center; }
+    .quote-tier { border:1px solid var(--line); border-radius:999px; padding:.22rem .48rem; color:var(--accent); font-size:.67rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; }
+    .quote-mission { color:var(--muted); font-size:.7rem; }
+    .quote-card blockquote { margin:1.3rem 0 .55rem; padding:0; border:0; color:var(--text); font-size:1.35rem; line-height:1.45; font-weight:700; }
+    .quote-speaker { color:var(--accent); font-size:.85rem; font-weight:700; }
+    .quote-card p { color:var(--muted); line-height:1.5; font-size:.8rem; }
+    .quote-source { margin-top:auto; padding-top:1.2rem; color:var(--muted); font-size:.75rem; }
+    .quote-source span { color:var(--accent); float:right; }
+    .quote-empty { padding:2rem; border:1px solid var(--line); border-radius:14px; background:var(--panel); }
+    .quote-empty h2 { margin:.35rem 0 .6rem; }
+    .quote-empty p { color:var(--muted); margin:0 0 1.2rem; }
+    [hidden] { display:none !important; }
+    @media (max-width:720px) { .quote-grid { grid-template-columns:1fr; } .quote-controls-inner { align-items:flex-start; flex-direction:column; } }
+  </style>
+</BaseLayout>
