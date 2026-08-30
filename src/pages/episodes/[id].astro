@@ -53,6 +53,16 @@ const previouslyRelevant = d.previouslyRelevant
     };
   })
   .filter(Boolean);
+const questions = d.questions.map((item) => {
+  const resolution = item.resolvesAt ? watchEntryByKey.get(item.resolvesAt) : null;
+  return {
+    ...item,
+    resolutionTitle: resolution?.title ?? null,
+    resolutionCode: resolution ? codeForWatchEntry(resolution) : null,
+    resolutionSeries: resolution?.series ?? null,
+    resolutionHref: item.resolvesAt ? missionHrefByKey.get(item.resolvesAt) ?? '/watch-order' : null
+  };
+});
 const episodeCode = `S${String(d.season).padStart(2, '0')}E${String(d.episode).padStart(2, '0')}`;
 const watchKey = watchKeyForEpisode(d.series, d.season, d.episode);
 const watchIndex = watchOrderIndex.get(watchKey);
@@ -137,6 +147,38 @@ const continuityLabel = d.continuityWeight.charAt(0).toUpperCase() + d.continuit
                     </div>
                     <b aria-hidden="true">→</b>
                   </a>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {questions.length > 0 && (
+            <section class="question-file" aria-labelledby="question-file-title">
+              <div class="eyebrow">Unresolved intelligence</div>
+              <div class="question-file-heading">
+                <div>
+                  <h2 id="question-file-title">Questions Raised</h2>
+                  <p>Questions this mission leaves in play. Answers appear only when your rewatch reaches them.</p>
+                </div>
+                <a href="/questions">Open question archive →</a>
+              </div>
+              <div class="question-list">
+                {questions.map((item) => (
+                  <article class="question-card" data-question-resolves-at={item.resolvesAt || ''}>
+                    <div class="question-topline">
+                      <span class="question-status">OPEN</span>
+                      <span class="question-resolution-code" hidden>{item.resolutionSeries} · {item.resolutionCode}</span>
+                    </div>
+                    <h3>{item.question}</h3>
+                    {item.note && <p class="question-note">{item.note}</p>}
+                    {item.answer && (
+                      <div class="question-answer" hidden>
+                        <div class="mission-label">Resolved</div>
+                        <p>{item.answer}</p>
+                        {item.resolutionHref && <a href={item.resolutionHref}>Open resolving mission — {item.resolutionTitle} →</a>}
+                      </div>
+                    )}
+                  </article>
                 ))}
               </div>
             </section>
@@ -256,6 +298,7 @@ const continuityLabel = d.continuityWeight.charAt(0).toUpperCase() + d.continuit
       const through = document.getElementById('mission-watch-through');
       const watchedContent = [...document.querySelectorAll('[data-watch-when="watched"]')];
       const unwatchedContent = [...document.querySelectorAll('[data-watch-when="unwatched"]')];
+      const questionCards = [...document.querySelectorAll('.question-card[data-question-resolves-at]')];
       const render = () => {
         const isWatched = window.ChevronWatch.watched(key);
         state.textContent = isWatched ? 'Watched ✓' : 'Not marked watched';
@@ -263,6 +306,17 @@ const continuityLabel = d.continuityWeight.charAt(0).toUpperCase() + d.continuit
         toggle.textContent = isWatched ? 'Mark unwatched' : 'Mark watched';
         watchedContent.forEach((node) => { node.hidden = !isWatched; });
         unwatchedContent.forEach((node) => { node.hidden = isWatched; });
+        questionCards.forEach((card) => {
+          const resolveKey = card.dataset.questionResolvesAt;
+          const resolved = Boolean(resolveKey) && window.ChevronWatch.watched(resolveKey);
+          card.classList.toggle('is-resolved', resolved);
+          const status = card.querySelector('.question-status');
+          const answer = card.querySelector('.question-answer');
+          const resolutionCode = card.querySelector('.question-resolution-code');
+          if (status) status.textContent = resolved ? 'RESOLVED' : 'OPEN';
+          if (answer) answer.hidden = !resolved;
+          if (resolutionCode) resolutionCode.hidden = !resolved;
+        });
       };
       toggle.addEventListener('click', () => window.ChevronWatch.mark(key, !window.ChevronWatch.watched(key)));
       through.addEventListener('click', () => window.ChevronWatch.markThrough(throughKeys));
@@ -295,6 +349,23 @@ const continuityLabel = d.continuityWeight.charAt(0).toUpperCase() + d.continuit
   .previously-relevant-copy > strong { color:var(--text); }
   .previously-relevant-copy span { color:var(--muted); font-size:.82rem; line-height:1.5; }
   .previously-relevant-list a > b { color:var(--muted); text-align:right; }
+  .question-file { margin:0 0 1.4rem; padding:1.2rem; border:1px solid var(--line); border-radius:14px; background:rgba(17,23,27,.72); }
+  .question-file-heading { display:flex; justify-content:space-between; gap:1.5rem; align-items:flex-start; margin:.35rem 0 .9rem; }
+  .question-file-heading h2 { margin:0 0 .3rem; }
+  .question-file-heading p { margin:0; color:var(--muted); font-size:.86rem; line-height:1.5; }
+  .question-file-heading > a { color:var(--accent); font-size:.76rem; text-decoration:none; white-space:nowrap; }
+  .question-list { display:grid; gap:.7rem; }
+  .question-card { padding:1rem; border:1px solid var(--line); border-radius:10px; background:rgba(8,11,13,.42); }
+  .question-card.is-resolved { border-color:rgba(212,167,76,.35); }
+  .question-topline { display:flex; justify-content:space-between; gap:1rem; align-items:center; }
+  .question-status { color:var(--accent); font-size:.66rem; font-weight:800; letter-spacing:.08em; }
+  .question-card:not(.is-resolved) .question-status { color:var(--muted); }
+  .question-resolution-code { color:var(--muted); font-size:.68rem; }
+  .question-card h3 { margin:.45rem 0 0; font-size:1rem; line-height:1.45; }
+  .question-note { margin:.45rem 0 0; color:var(--muted); font-size:.8rem; line-height:1.5; }
+  .question-answer { margin-top:.8rem; padding-top:.8rem; border-top:1px solid var(--line); }
+  .question-answer p { margin:.3rem 0 .55rem; color:var(--text); line-height:1.6; }
+  .question-answer a { color:var(--accent); font-size:.76rem; text-decoration:none; }
   .episode-thread-links { margin:0 0 1.4rem; padding:1.2rem; border:1px solid var(--line); border-radius:14px; background:rgba(17,23,27,.72); }
   .episode-thread-links h2 { margin:.35rem 0 1rem; }
   .episode-thread-list { display:grid; }
@@ -328,5 +399,6 @@ const continuityLabel = d.continuityWeight.charAt(0).toUpperCase() + d.continuit
     .previously-relevant-code { grid-column:1; display:flex; gap:.5rem; align-items:center; }
     .previously-relevant-copy { grid-column:1; }
     .previously-relevant-list a > b { grid-column:2; grid-row:1 / span 2; }
+    .question-file-heading { flex-direction:column; gap:.6rem; }
   }
 </style>
