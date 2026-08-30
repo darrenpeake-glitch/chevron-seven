@@ -6,9 +6,28 @@ summary: "The people of Earth as known to the wider galactic community: technolo
 spoilerLevel: episode
 safeThrough:
   series: SG-1
-  season: 3
-  episode: 4
-status: "REWATCH-SAFE PROFILE"
+  season: 1
+  episode: 1
+revelations:
+  - after:
+      series: SG-1
+      season: 1
+      episode: 22
+    heading: "Earth can strike back"
+    text: "Within the Serpent's Grasp shows that the Tau'ri are willing to leave Earth entirely undefended rather than wait passively for destruction. Their greatest early strength is improvisation, not technology."
+  - after:
+      series: SG-1
+      season: 2
+      episode: 15
+    heading: "A place among older powers"
+    text: "The Fifth Race suggests that humanity's significance may ultimately come from what it can become rather than what it currently possesses."
+  - after:
+      series: SG-1
+      season: 3
+      episode: 3
+    heading: "Protected planet status"
+    text: "Fair Game changes Earth's galactic standing materially. The Tau'ri become formally protected through Asgard diplomacy and can no longer be treated as merely another isolated human world."
+status: "PROGRESSIVE PROFILE"
 aliases:
   - "Earth"
   - "Humans of Earth"
@@ -21,7 +40,7 @@ Tau'ri is the term used by several off-world cultures for the humans of Earth. F
 
 ## Strategic Position
 
-By **SG-1 S03E04**, Earth has already moved beyond being merely a hidden human world. Its actions against the Goa'uld and its contact with the Asgard mean the Tau'ri are becoming a strategic factor in the wider balance of power.
+Earth has already moved beyond being merely a hidden human world. Its actions against the Goa'uld and its contact with the Asgard mean the Tau'ri are becoming a strategic factor in the wider balance of power.
 
 ## Established Characteristics
 
@@ -29,7 +48,3 @@ By **SG-1 S03E04**, Earth has already moved beyond being merely a hidden human w
 - Compensates with adaptability, unconventional tactics and rapid learning.
 - Stargate Command acts as Earth's principal off-world operational arm.
 - Increasingly recognized by both allies and enemies.
-
-## Rewatch Position
-
-This record includes only information established by **SG-1 S03E04 — Legacy**.
