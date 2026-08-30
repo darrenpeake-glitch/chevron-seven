@@ -6,9 +6,22 @@ summary: "A loose and hostile hierarchy of Goa'uld rulers whose rivalry does not
 spoilerLevel: episode
 safeThrough:
   series: SG-1
-  season: 3
-  episode: 4
-status: "REWATCH-SAFE PROFILE"
+  season: 1
+  episode: 21
+revelations:
+  - after:
+      series: SG-1
+      season: 2
+      episode: 18
+    heading: "Rivalry can be exploited"
+    text: "Serpent's Song shows that individual System Lords can be isolated and abandoned when political advantage demands it. Their shared culture does not create loyalty."
+  - after:
+      series: SG-1
+      season: 3
+      episode: 3
+    heading: "Earth becomes a diplomatic problem"
+    text: "Fair Game confirms that the System Lords collectively consider Earth important enough to negotiate over. Cronus, Yu and Nirrti arrive not as invaders but as representatives of a larger political order."
+status: "PROGRESSIVE PROFILE"
 aliases:
   - "System Lords"
 draft: false
@@ -32,7 +45,3 @@ By **Fair Game**, Earth has become troublesome enough to enter System Lord diplo
 - Rule through military strength, intimidation and claims of divinity.
 - Possess technology far beyond Earth's conventional military capability.
 - Treat political status and perceived weakness as strategically important.
-
-## Rewatch Position
-
-This record includes only information established by **SG-1 S03E04 — Legacy**.
