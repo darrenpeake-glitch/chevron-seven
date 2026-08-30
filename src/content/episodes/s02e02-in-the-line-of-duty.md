@@ -29,6 +29,11 @@ connections:
   - Character
   - Medical
 continuityWeight: mythology
+questions:
+  - question: "Are the Tok'ra really a resistance movement inside the Goa'uld species, and could Earth ever find them?"
+    resolvesAt: "sg1:2:11"
+    answer: "Yes. Carter's memories of Jolinar lead SG-1 to the Tok'ra, who are an organized symbiote resistance opposed to the System Lords and who blend voluntarily with human hosts."
+    note: "Jolinar gives SG-1 only a glimpse of the Tok'ra before dying, leaving both their scale and their motives uncertain."
 previouslyRelevant:
   - watchKey: "sg1:1:3"
     reason: "The Enemy Within establishes the danger of Goa'uld possession inside the SGC; Carter's case initially appears to be the same nightmare before Jolinar changes that assumption."
