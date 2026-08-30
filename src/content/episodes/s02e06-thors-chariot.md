@@ -24,6 +24,9 @@ technology:
 arcs:
   - "Asgard–Tau'ri relationship"
   - "Goa'uld conflict"
+previouslyRelevant:
+  - watchKey: "sg1:1:10"
+    reason: "SG-1 first encounters Cimmeria, Thor's Hammer and the evidence that a powerful alien culture stands behind Norse mythology."
 narrativeThreads:
   - thread: "asgard-tauri-relationship"
     role: reveal
