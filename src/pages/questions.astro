@@ -1,0 +1,233 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { watchOrder, watchKeyForEpisode, codeForWatchEntry } from '../lib/watch-order';
+
+const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
+const films = (await getCollection('films')).filter((entry) => !entry.data.draft);
+const watchEntryByKey = new Map(watchOrder.map((entry) => [entry.key, entry]));
+const missionHrefByKey = new Map<string, string>();
+
+for (const episode of episodes) {
+  missionHrefByKey.set(
+    watchKeyForEpisode(episode.data.series, episode.data.season, episode.data.episode),
+    `/episodes/${episode.id}/`
+  );
+}
+for (const film of films) missionHrefByKey.set(film.data.watchKey, `/films/${film.id}/`);
+
+const questionRecords = [
+  ...episodes.flatMap((entry) => {
+    const sourceKey = watchKeyForEpisode(entry.data.series, entry.data.season, entry.data.episode);
+    const sourceWatch = watchEntryByKey.get(sourceKey);
+    return entry.data.questions.map((item, index) => {
+      const resolution = item.resolvesAt ? watchEntryByKey.get(item.resolvesAt) : null;
+      return {
+        id: `${entry.id}:${index}`,
+        sourceKey,
+        sourceTitle: entry.data.title,
+        sourceSeries: entry.data.series,
+        sourceCode: sourceWatch ? codeForWatchEntry(sourceWatch) : `S${entry.data.season}E${entry.data.episode}`,
+        sourceHref: `/episodes/${entry.id}/`,
+        question: item.question,
+        note: item.note ?? null,
+        resolvesAt: item.resolvesAt ?? null,
+        answer: item.answer ?? null,
+        resolutionTitle: resolution?.title ?? null,
+        resolutionSeries: resolution?.series ?? null,
+        resolutionCode: resolution ? codeForWatchEntry(resolution) : null,
+        resolutionHref: item.resolvesAt ? missionHrefByKey.get(item.resolvesAt) ?? '/watch-order' : null
+      };
+    });
+  }),
+  ...films.flatMap((entry) => entry.data.questions.map((item, index) => {
+    const sourceWatch = watchEntryByKey.get(entry.data.watchKey);
+    const resolution = item.resolvesAt ? watchEntryByKey.get(item.resolvesAt) : null;
+    return {
+      id: `${entry.id}:${index}`,
+      sourceKey: entry.data.watchKey,
+      sourceTitle: entry.data.title,
+      sourceSeries: sourceWatch?.series ?? 'Film',
+      sourceCode: sourceWatch ? codeForWatchEntry(sourceWatch) : 'FEATURE',
+      sourceHref: `/films/${entry.id}/`,
+      question: item.question,
+      note: item.note ?? null,
+      resolvesAt: item.resolvesAt ?? null,
+      answer: item.answer ?? null,
+      resolutionTitle: resolution?.title ?? null,
+      resolutionSeries: resolution?.series ?? null,
+      resolutionCode: resolution ? codeForWatchEntry(resolution) : null,
+      resolutionHref: item.resolvesAt ? missionHrefByKey.get(item.resolvesAt) ?? '/watch-order' : null
+    };
+  }))
+];
+---
+<BaseLayout title="Questions · Chevron Seven" description="Open and resolved Stargate questions revealed by your rewatch progress.">
+  <section class="questions-hero">
+    <div class="shell questions-hero-grid">
+      <div>
+        <div class="eyebrow">Continuity intelligence</div>
+        <h1 class="episode-title">Questions</h1>
+        <p class="lede">Mysteries, unknowns and long-game questions raised by missions you have watched. Answers stay sealed until your rewatch reaches them.</p>
+      </div>
+      <div class="question-summary-card">
+        <span class="mission-label">Your question file</span>
+        <div><strong id="question-open-count">0</strong><span>open</span></div>
+        <div><strong id="question-resolved-count">0</strong><span>resolved</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="question-toolbar">
+    <div class="shell question-toolbar-inner">
+      <div class="question-filters" role="group" aria-label="Question status filter">
+        <button type="button" data-question-filter="all" class="active">All</button>
+        <button type="button" data-question-filter="open">Open</button>
+        <button type="button" data-question-filter="resolved">Resolved</button>
+      </div>
+      <span id="question-visible-count">0 questions unlocked</span>
+    </div>
+  </section>
+
+  <section class="section questions-section">
+    <div class="shell">
+      <div class="questions-empty" id="questions-empty">
+        <div class="eyebrow">No questions unlocked</div>
+        <h2>Your question file is clear.</h2>
+        <p>Questions will appear here as watched missions raise meaningful mysteries or continuity threads.</p>
+        <a class="button-primary" href="/watch-order">Open Watch Order</a>
+      </div>
+
+      <div class="questions-list" id="questions-list">
+        {questionRecords.map((item) => (
+          <article
+            class="question-archive-card"
+            data-question-card
+            data-source-key={item.sourceKey}
+            data-resolves-at={item.resolvesAt || ''}
+            hidden
+          >
+            <div class="question-card-side">
+              <span class="question-status">OPEN</span>
+              <strong>{item.sourceSeries}</strong>
+              <span>{item.sourceCode}</span>
+            </div>
+            <div class="question-card-main">
+              <a class="question-source" href={item.sourceHref}>{item.sourceTitle}</a>
+              <h2>{item.question}</h2>
+              {item.note && <p class="question-note">{item.note}</p>}
+              {item.answer && (
+                <div class="question-resolution" hidden>
+                  <div class="eyebrow">Resolved intelligence</div>
+                  <p>{item.answer}</p>
+                  {item.resolutionHref && (
+                    <a href={item.resolutionHref}>
+                      {item.resolutionSeries} · {item.resolutionCode} — {item.resolutionTitle} →
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <script is:inline src="/watch-progress.js"></script>
+  <script is:inline>
+    (() => {
+      if (!window.ChevronWatch) return;
+      const cards = [...document.querySelectorAll('[data-question-card]')];
+      const buttons = [...document.querySelectorAll('[data-question-filter]')];
+      const empty = document.getElementById('questions-empty');
+      const visibleCount = document.getElementById('question-visible-count');
+      const openCount = document.getElementById('question-open-count');
+      const resolvedCount = document.getElementById('question-resolved-count');
+      let filter = 'all';
+
+      const render = () => {
+        const watched = new Set(window.ChevronWatch.load());
+        let unlocked = 0;
+        let open = 0;
+        let resolvedTotal = 0;
+        let visible = 0;
+
+        cards.forEach((card) => {
+          const sourceWatched = watched.has(card.dataset.sourceKey);
+          const resolveKey = card.dataset.resolvesAt;
+          const resolved = sourceWatched && Boolean(resolveKey) && watched.has(resolveKey);
+          if (sourceWatched) {
+            unlocked += 1;
+            if (resolved) resolvedTotal += 1;
+            else open += 1;
+          }
+          const passesFilter = filter === 'all' || (filter === 'open' && !resolved) || (filter === 'resolved' && resolved);
+          card.hidden = !(sourceWatched && passesFilter);
+          if (!card.hidden) visible += 1;
+          card.classList.toggle('is-resolved', resolved);
+          const status = card.querySelector('.question-status');
+          const resolution = card.querySelector('.question-resolution');
+          if (status) status.textContent = resolved ? 'RESOLVED' : 'OPEN';
+          if (resolution) resolution.hidden = !resolved;
+        });
+
+        openCount.textContent = String(open);
+        resolvedCount.textContent = String(resolvedTotal);
+        visibleCount.textContent = `${visible} ${visible === 1 ? 'question' : 'questions'} shown`;
+        empty.hidden = unlocked > 0;
+      };
+
+      buttons.forEach((button) => button.addEventListener('click', () => {
+        filter = button.dataset.questionFilter;
+        buttons.forEach((candidate) => candidate.classList.toggle('active', candidate === button));
+        render();
+      }));
+      window.addEventListener('chevron-watch-change', render);
+      render();
+    })();
+  </script>
+
+  <style>
+    .questions-hero { padding:5rem 0 3.5rem; border-bottom:1px solid var(--line); background:radial-gradient(circle at 80% 20%,rgba(212,167,76,.08),transparent 23rem); }
+    .questions-hero-grid { display:grid; grid-template-columns:minmax(0,1fr) 250px; gap:4rem; align-items:end; }
+    .question-summary-card { border:1px solid var(--line); border-radius:14px; padding:1.2rem; background:var(--panel); display:grid; gap:.7rem; }
+    .question-summary-card > div { display:flex; align-items:baseline; justify-content:space-between; padding-top:.6rem; border-top:1px solid var(--line); }
+    .question-summary-card strong { color:var(--accent); font-size:1.45rem; }
+    .question-summary-card span { color:var(--muted); font-size:.76rem; }
+    .question-toolbar { border-bottom:1px solid var(--line); background:#0b1013; }
+    .question-toolbar-inner { min-height:64px; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+    .question-toolbar-inner > span { color:var(--muted); font-size:.78rem; }
+    .question-filters { display:flex; gap:.45rem; flex-wrap:wrap; }
+    .question-filters button { border:1px solid var(--line); border-radius:999px; background:transparent; color:var(--muted); padding:.4rem .75rem; cursor:pointer; }
+    .question-filters button:hover, .question-filters button.active { border-color:var(--accent-soft); color:var(--accent); }
+    .questions-list { display:grid; gap:.8rem; }
+    .question-archive-card { display:grid; grid-template-columns:110px minmax(0,1fr); border:1px solid var(--line); border-radius:12px; background:var(--panel); overflow:hidden; }
+    .question-archive-card.is-resolved { border-color:rgba(212,167,76,.34); }
+    .question-card-side { padding:1rem; border-right:1px solid var(--line); display:grid; align-content:start; gap:.25rem; }
+    .question-card-side .question-status { color:var(--muted); font-size:.65rem; font-weight:800; letter-spacing:.08em; margin-bottom:.55rem; }
+    .question-archive-card.is-resolved .question-status { color:var(--accent); }
+    .question-card-side strong { font-size:.76rem; }
+    .question-card-side > span:last-child { color:var(--accent); font-size:.72rem; }
+    .question-card-main { padding:1rem 1.2rem; }
+    .question-source { color:var(--muted); text-decoration:none; font-size:.75rem; }
+    .question-source:hover { color:var(--accent); }
+    .question-card-main h2 { margin:.3rem 0 0; font-size:1.08rem; line-height:1.45; }
+    .question-note { margin:.45rem 0 0; color:var(--muted); font-size:.82rem; line-height:1.5; }
+    .question-resolution { margin-top:.9rem; padding-top:.9rem; border-top:1px solid var(--line); }
+    .question-resolution p { margin:.35rem 0 .55rem; line-height:1.6; }
+    .question-resolution a { color:var(--accent); font-size:.76rem; text-decoration:none; }
+    .questions-empty { border:1px solid var(--line); border-radius:14px; padding:2rem; background:var(--panel); }
+    .questions-empty h2 { margin:.35rem 0 .55rem; }
+    .questions-empty p { margin:0 0 1rem; color:var(--muted); }
+    [hidden] { display:none !important; }
+    @media (max-width:720px) {
+      .questions-hero-grid { grid-template-columns:1fr; gap:2rem; }
+      .question-toolbar-inner { align-items:flex-start; flex-direction:column; padding:1rem 0; }
+      .question-archive-card { grid-template-columns:1fr; }
+      .question-card-side { border-right:0; border-bottom:1px solid var(--line); grid-template-columns:auto auto 1fr; align-items:center; gap:.6rem; }
+      .question-card-side .question-status { margin:0; }
+      .question-card-side > span:last-child { justify-self:end; }
+    }
+  </style>
+</BaseLayout>
