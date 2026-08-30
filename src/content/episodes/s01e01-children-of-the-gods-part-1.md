@@ -23,6 +23,9 @@ technology:
   - "Stargate"
 arcs:
   - "Goa'uld conflict"
+previouslyRelevant:
+  - watchKey: "film:stargate-1994"
+    reason: "The original Abydos mission establishes the Stargate, O'Neill and Daniel, Ra's rule, and the people whose lives pull Earth back into the gate network."
 narrativeThreads: []
 spoilerLevel: episode
 rewatchRating: 4
