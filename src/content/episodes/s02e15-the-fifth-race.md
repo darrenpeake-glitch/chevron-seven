@@ -26,7 +26,15 @@ arcs:
   - "Asgard–Tau'ri relationship"
   - "Ancient legacy"
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "asgard-tauri-relationship"
+    role: turning-point
+    relevance: primary
+    note: "The Asgard explicitly frame humanity as a civilization with the potential to join the older great powers."
+  - thread: "earth-technological-rise"
+    role: turning-point
+    relevance: primary
+    note: "Ancient knowledge temporarily pushes a human mind far beyond Earth's technological baseline and points toward a much larger inherited scientific legacy."
 spoilerLevel: episode
 rewatchRating: 5
 featured: false
