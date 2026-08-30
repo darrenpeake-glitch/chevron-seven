@@ -1,4 +1,5 @@
 .archive-hero { padding: 5.3rem 0 3.2rem; border-bottom: 1px solid var(--line); background: radial-gradient(circle at 80% 10%, rgba(212,167,76,.08), transparent 24rem); }
+.archive-record-hero { padding-top: 6.4rem; }
 .archive-hero-main { position: relative; overflow: hidden; }
 .archive-hero-main::after { content: ""; position: absolute; width: 430px; height: 430px; border-radius: 50%; border: 1px solid rgba(212,167,76,.08); right: -170px; top: -205px; pointer-events: none; }
 .archive-hero-grid, .archive-entity-hero { display: grid; grid-template-columns: minmax(0,1fr) 260px; gap: 3rem; align-items: end; }
@@ -22,6 +23,9 @@
 .archive-directory-count { color: var(--muted); font-size: .85rem; white-space: nowrap; }
 .archive-empty { padding: 2rem 0; color: var(--muted); }
 .archive-entity-code { justify-self: end; color: rgba(212,167,76,.22); font-size: 6rem; line-height: 1; font-weight: 900; letter-spacing: -.06em; }
+.archive-entity-count { justify-self: end; text-align: right; display: grid; gap: .2rem; align-content: end; }
+.archive-entity-count strong { color: rgba(212,167,76,.38); font-size: 4.4rem; line-height: .9; font-weight: 900; letter-spacing: -.05em; }
+.archive-entity-count span { color: var(--muted); text-transform: uppercase; letter-spacing: .12em; font-size: .65rem; font-weight: 700; }
 .archive-mission-list { display: grid; }
 .archive-mission-row { text-decoration: none; display: grid; grid-template-columns: 90px minmax(0,1fr) auto; gap: 1.4rem; align-items: center; padding: 1.2rem 0; border-bottom: 1px solid rgba(41,53,59,.75); }
 .archive-mission-row:hover .archive-mission-copy strong { color: var(--accent); }
@@ -37,7 +41,8 @@
 .archive-group-link:hover { color: var(--accent); }
 @media (max-width: 760px) {
   .archive-hero-grid, .archive-entity-hero { grid-template-columns: 1fr; gap: 2rem; }
-  .archive-entity-code { justify-self: start; font-size: 4rem; }
+  .archive-entity-code, .archive-entity-count { justify-self: start; text-align: left; }
+  .archive-entity-count strong { font-size: 3.6rem; }
   .archive-mission-row { grid-template-columns: 70px minmax(0,1fr); }
   .archive-mission-score { grid-column: 2; }
 }
