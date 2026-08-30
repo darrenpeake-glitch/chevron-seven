@@ -31,6 +31,11 @@ connections:
   - First contact
   - Jaffa
 continuityWeight: mythology
+questions:
+  - question: "Who — or what — is Thor, and who built Cimmeria's anti-Goa'uld technology?"
+    resolvesAt: "sg1:2:6"
+    answer: "Thor is an Asgard: one of the advanced aliens behind Earth's Norse mythology. Cimmeria is under Asgard protection, and Thor's Hammer is part of that protection system."
+    note: "The episode deliberately leaves Thor as mythology backed by technology rather than a known living alien."
 narrativeThreads:
   - thread: "asgard-tauri-relationship"
     role: breadcrumb
