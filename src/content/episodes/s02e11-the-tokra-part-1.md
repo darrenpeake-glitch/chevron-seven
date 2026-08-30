@@ -22,7 +22,11 @@ technology:
   - "Stargate"
 arcs:
   - "Tok'ra alliance"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "tokra-alliance"
+    role: reveal
+    relevance: primary
+    note: "SG-1 meets the Tok'ra as an organized resistance and discovers that a shared enemy is not enough to guarantee trust."
 spoilerLevel: episode
 rewatchRating: 5
 featured: false
