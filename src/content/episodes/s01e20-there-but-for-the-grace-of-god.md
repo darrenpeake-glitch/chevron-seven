@@ -24,7 +24,11 @@ technology:
   - "Quantum mirror"
 arcs:
   - "Goa'uld conflict"
-narrativeThreads: []
+narrativeThreads:
+  - thread: "earth-technological-rise"
+    role: development
+    relevance: primary
+    note: "The quantum mirror shows Earth beginning to encounter and operate technology whose principles lie far beyond conventional human science."
 spoilerLevel: episode
 rewatchRating: 5
 featured: false
