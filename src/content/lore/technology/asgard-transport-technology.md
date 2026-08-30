@@ -6,9 +6,16 @@ summary: "A precise Asgard transport capability that allows people or objects to
 spoilerLevel: episode
 safeThrough:
   series: SG-1
-  season: 3
-  episode: 4
-status: "REWATCH-SAFE PROFILE"
+  season: 2
+  episode: 6
+revelations:
+  - after:
+      series: SG-1
+      season: 3
+      episode: 3
+    heading: "Strategic, not merely convenient"
+    text: "Fair Game demonstrates how effortlessly Asgard transport can move key personnel in and out of secure Earth facilities. The technology is a diplomatic tool, a rescue system and a reminder of the enormous capability gap between Earth and the Asgard."
+status: "PROGRESSIVE PROFILE"
 aliases:
   - "Asgard transporter"
   - "Asgard beaming technology"
@@ -26,7 +33,3 @@ The important feature is not simply convenience. Transport can bypass physical b
 ## What It Tells Us About the Asgard
 
 The technology reinforces the scale of the gap between Earth and the Asgard. Capabilities that would represent a major scientific revolution for the Tau'ri appear routine to them.
-
-## Rewatch Position
-
-This record includes only information established by **SG-1 S03E04 — Legacy**.
