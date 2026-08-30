@@ -1,0 +1,33 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .7rem;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-weight: 800;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 40px;
+  flex: 0 0 auto;
+  display: block;
+}
+
+.brand-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .38rem;
+  white-space: nowrap;
+}
+
+.brand-wordmark span {
+  color: var(--accent);
+}
+
+@media (max-width: 560px) {
+  .brand { gap: .5rem; }
+  .brand-mark { width: 29px; height: 34px; }
+  .brand-wordmark { font-size: .86rem; letter-spacing: .13em; }
+}
