@@ -12,6 +12,11 @@ factions: []
 worlds: []
 technology: ["Stargate"]
 arcs: []
+quotes:
+  - text: "You blow up one sun, and suddenly everyone expects you to walk on water."
+    speaker: "Samantha Carter"
+    tier: advanced
+    note: "A wonderfully understated summary of how absurd SG-1's résumé has become."
 narrativeThreads:
   - thread: "replicator-war"
     role: payoff
