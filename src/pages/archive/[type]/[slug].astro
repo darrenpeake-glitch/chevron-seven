@@ -2,6 +2,7 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
 import { archiveTypes, valuesForType, episodesForValue, slugify, episodeCode, type ArchiveType } from '../../../lib/archive';
+import { watchKeyForEpisode } from '../../../lib/watch-order';
 
 export async function getStaticPaths() {
   const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
@@ -22,9 +23,13 @@ const loreRecords = (await getCollection('lore')).filter((entry) => !entry.data.
 const lore = loreRecords.find((entry) => entry.data.type === type && entry.data.name === value);
 const renderedLore = lore ? await render(lore) : null;
 const LoreContent = renderedLore?.Content;
-const safeThrough = lore?.data.safeThrough
-  ? `${lore.data.safeThrough.series} S${String(lore.data.safeThrough.season).padStart(2, '0')}E${String(lore.data.safeThrough.episode).padStart(2, '0')}`
+const formatPoint = (point) => point
+  ? `${point.series} S${String(point.season).padStart(2, '0')}E${String(point.episode).padStart(2, '0')}`
   : null;
+const coreUnlockKey = lore?.data.safeThrough
+  ? watchKeyForEpisode(lore.data.safeThrough.series, lore.data.safeThrough.season, lore.data.safeThrough.episode)
+  : null;
+const safeThrough = formatPoint(lore?.data.safeThrough);
 ---
 <BaseLayout title={`${value} · ${config.label} · Chevron Seven`} description={lore?.data.summary ?? `${value} archive record in Chevron Seven.`}>
   <section class="archive-hero archive-record-hero">
@@ -60,9 +65,26 @@ const safeThrough = lore?.data.safeThrough
               <h2>Record briefing</h2>
             </div>
           </div>
-          <article class="mission-article lore-article">
+
+          <article
+            class="mission-article lore-article"
+            data-progress-key={coreUnlockKey || undefined}
+            data-progress-label={safeThrough ? `Record briefing unlocks after ${safeThrough}.` : undefined}
+          >
             <LoreContent />
           </article>
+
+          {lore.data.revelations.map((revelation) => {
+            const unlockKey = watchKeyForEpisode(revelation.after.series, revelation.after.season, revelation.after.episode);
+            const unlockLabel = `Archive update unlocks after ${formatPoint(revelation.after)}.`;
+            return (
+              <section class="lore-revelation" data-progress-key={unlockKey} data-progress-label={unlockLabel}>
+                <div class="eyebrow">New intelligence</div>
+                <h3>{revelation.heading}</h3>
+                <p>{revelation.text}</p>
+              </section>
+            );
+          })}
         </main>
 
         <aside class="lore-sidebar">
@@ -70,7 +92,8 @@ const safeThrough = lore?.data.safeThrough
             <div class="eyebrow">Spoiler control</div>
             <div class="metric-list">
               <div class="metric-row"><span>Scope</span><strong class="capitalize">{lore.data.spoilerLevel}</strong></div>
-              {safeThrough && <div class="metric-row"><span>Safe through</span><strong>{safeThrough}</strong></div>}
+              {safeThrough && <div class="metric-row"><span>Briefing unlock</span><strong>{safeThrough}</strong></div>}
+              <div class="metric-row"><span>Disclosure</span><strong>Watch-state driven</strong></div>
             </div>
           </div>
           {lore.data.aliases.length > 0 && (
