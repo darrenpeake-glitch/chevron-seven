@@ -27,7 +27,7 @@ const safeThrough = lore?.data.safeThrough
   : null;
 ---
 <BaseLayout title={`${value} · ${config.label} · Chevron Seven`} description={lore?.data.summary ?? `${value} archive record in Chevron Seven.`}>
-  <section class="archive-hero">
+  <section class="archive-hero archive-record-hero">
     <div class="shell archive-entity-hero">
       <div>
         <div class="eyebrow">{config.singular}</div>
@@ -35,7 +35,10 @@ const safeThrough = lore?.data.safeThrough
         {lore?.data.subtitle && <div class="archive-subtitle">{lore.data.subtitle}</div>}
         <p class="lede">{lore?.data.summary ?? `Indexed automatically from mission metadata. This record currently links to ${linked.length} archived ${linked.length === 1 ? 'mission' : 'missions'}.`}</p>
       </div>
-      <div class="archive-entity-code">{String(linked.length).padStart(2, '0')}</div>
+      <div class="archive-entity-count" aria-label={`${linked.length} linked missions`}>
+        <strong>{String(linked.length).padStart(2, '0')}</strong>
+        <span>linked {linked.length === 1 ? 'mission' : 'missions'}</span>
+      </div>
     </div>
   </section>
 
