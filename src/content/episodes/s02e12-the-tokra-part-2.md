@@ -24,6 +24,9 @@ technology:
 arcs:
   - "Tok'ra alliance"
   - "Goa'uld conflict"
+previouslyRelevant:
+  - watchKey: "sg1:2:11"
+    reason: "SG-1 has found the Tok'ra but failed to secure an alliance; Jacob Carter's illness and the threat to the Tok'ra base create the circumstances that change the negotiation."
 narrativeThreads:
   - thread: "tokra-alliance"
     role: turning-point
