@@ -24,14 +24,20 @@ technology:
 arcs:
   - Asgard–Tau'ri alliance
   - Goa'uld System Lords
+narrativeThreads:
+  - thread: "replicator-war"
+    role: breadcrumb
+    relevance: secondary
+    note: "Thor reveals that the Asgard are occupied by an unnamed enemy in their home galaxy — a threat he considers worse than the Goa'uld."
 spoilerLevel: episode
 biggerPicture:
-  summary: "Earth is no longer being treated merely as a rebellious backwater. By bringing the Tau'ri into direct negotiation with the System Lords under Asgard protection, this episode marks a shift toward Earth becoming a recognised political factor in the Milky Way."
+  summary: "Earth is no longer being treated merely as a rebellious backwater. The Tau'ri are now a factor in Goa'uld diplomacy, while Thor quietly reveals that the Asgard are constrained by a separate and more dangerous conflict elsewhere."
   threads:
     - "Asgard–Tau'ri alliance"
     - "Earth's galactic status"
     - "Goa'uld political order"
-  fullContext: "This relationship becomes part of the long arc in which Earth moves from technological outsider to major galactic power. The Asgard connection later contributes directly to the Tau'ri gaining access to knowledge and technology far beyond what Earth possesses at this point in the series."
+    - "Unknown Asgard adversary"
+  fullContext: "Thor's unnamed adversary is the Replicators. This brief disclosure is an early breadcrumb for a conflict that later becomes one of SG-1's major storylines and helps explain why the technologically superior Asgard cannot simply solve Earth's Goa'uld problem for them."
 oneillSarcasm: 8
 tealcEyebrow: moderate
 rewatchRating: 4
