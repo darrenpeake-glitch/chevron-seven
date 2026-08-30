@@ -5,6 +5,24 @@ const seriesName = z.enum(['SG-1', 'Atlantis', 'Universe']);
 const threadRole = z.enum(['breadcrumb', 'development', 'escalation', 'reveal', 'turning-point', 'payoff', 'aftermath']);
 const relevance = z.enum(['primary', 'secondary']);
 const quoteTier = z.enum(['basic', 'intermediate', 'advanced', 'deep-cut']);
+const continuityWeight = z.enum(['standalone', 'character', 'arc', 'mythology', 'essential']);
+const connection = z.enum([
+  'Ancient legacy',
+  'Asgard',
+  'Ascension',
+  'Alternate reality',
+  'Character',
+  'Comedy',
+  'Earth politics',
+  'First contact',
+  'Goauld politics',
+  'Jaffa',
+  'Medical',
+  'Ship episode',
+  'Technology',
+  'Time travel',
+  'Tokra'
+]);
 const episodePoint = z.object({
   series: seriesName,
   season: z.number().int().positive(),
@@ -23,6 +41,8 @@ const missionFields = {
   worlds: z.array(z.string()).default([]),
   technology: z.array(z.string()).default([]),
   arcs: z.array(z.string()).default([]),
+  connections: z.array(connection).default([]),
+  continuityWeight: continuityWeight.default('standalone'),
   quotes: z.array(z.object({
     text: z.string(),
     speaker: z.string(),
