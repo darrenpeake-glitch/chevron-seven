@@ -24,6 +24,9 @@ technology:
 arcs:
   - "Jaffa resistance"
   - "Goa'uld conflict"
+previouslyRelevant:
+  - watchKey: "sg1:1:22"
+    reason: "SG-1 is already aboard Apophis and Klorel's invasion fleet as it closes on Earth; this episode is the direct continuation of that cliffhanger."
 narrativeThreads: []
 spoilerLevel: episode
 rewatchRating: 5
