@@ -4,6 +4,7 @@ import { glob } from 'astro/loaders';
 const seriesName = z.enum(['SG-1', 'Atlantis', 'Universe']);
 const threadRole = z.enum(['breadcrumb', 'development', 'escalation', 'reveal', 'turning-point', 'payoff', 'aftermath']);
 const relevance = z.enum(['primary', 'secondary']);
+const quoteTier = z.enum(['basic', 'intermediate', 'advanced', 'deep-cut']);
 const episodePoint = z.object({
   series: seriesName,
   season: z.number().int().positive(),
@@ -22,6 +23,12 @@ const missionFields = {
   worlds: z.array(z.string()).default([]),
   technology: z.array(z.string()).default([]),
   arcs: z.array(z.string()).default([]),
+  quotes: z.array(z.object({
+    text: z.string(),
+    speaker: z.string(),
+    tier: quoteTier,
+    note: z.string().optional()
+  })).default([]),
   spoilerLevel: z.enum(['episode', 'season', 'series']).default('episode'),
   oneillSarcasm: z.number().min(0).max(10).optional(),
   tealcEyebrow: z.enum(['none', 'low', 'moderate', 'high', 'legendary']).optional(),
