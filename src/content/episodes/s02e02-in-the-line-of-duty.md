@@ -24,6 +24,9 @@ technology:
 arcs:
   - "Tok'ra alliance"
   - "Goa'uld conflict"
+previouslyRelevant:
+  - watchKey: "sg1:1:3"
+    reason: "The Enemy Within establishes the danger of Goa'uld possession inside the SGC; Carter's case initially appears to be the same nightmare before Jolinar changes that assumption."
 narrativeThreads:
   - thread: "tokra-alliance"
     role: breadcrumb
