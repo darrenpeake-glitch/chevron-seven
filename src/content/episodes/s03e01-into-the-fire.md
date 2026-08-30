@@ -24,6 +24,11 @@ technology:
 arcs:
   - "Tok'ra alliance"
   - "Goa'uld conflict"
+previouslyRelevant:
+  - watchKey: "sg1:1:14"
+    reason: "Hathor's first appearance establishes her ability to manipulate humans and her interest in rebuilding Goa'uld power through Earth."
+  - watchKey: "sg1:2:22"
+    reason: "Out of Mind ends with SG-1 captured by Hathor and establishes the false future used to interrogate them; Into the Fire begins inside that trap."
 narrativeThreads:
   - thread: "jaffa-freedom"
     role: development
