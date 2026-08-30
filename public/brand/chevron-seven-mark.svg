@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 112" role="img" aria-labelledby="title desc">
+  <title id="title">Chevron Seven mark</title>
+  <desc id="desc">An angular locking chevron with an integrated seven.</desc>
+  <g fill="none" stroke="#d4a74c" stroke-width="12" stroke-linejoin="miter" stroke-linecap="square">
+    <path d="M14 98V40L48 12l34 28v58"/>
+  </g>
+  <path d="M25 54h37L43 99H29l17-34H25z" fill="#d4a74c"/>
+  <path d="M14 70l15-12M82 70L67 58" stroke="#080b0d" stroke-width="4"/>
+</svg>
