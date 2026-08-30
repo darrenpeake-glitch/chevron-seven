@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
 import { slugify } from '../../lib/archive';
-import { watchOrder, watchOrderIndex, watchKeyForEpisode } from '../../lib/watch-order';
+import { watchOrder, watchOrderIndex, watchKeyForEpisode, codeForWatchEntry } from '../../lib/watch-order';
 
 export async function getStaticPaths() {
   const episodes = await getCollection('episodes');
@@ -29,6 +29,30 @@ const { Content } = await render(entry);
 const d = entry.data;
 const threadRecords = (await getCollection('threads')).filter((thread) => !thread.data.draft);
 const threadName = (id: string) => threadRecords.find((thread) => thread.id === id)?.data.name ?? id;
+const episodeRecords = (await getCollection('episodes')).filter((episode) => !episode.data.draft);
+const filmRecords = (await getCollection('films')).filter((film) => !film.data.draft);
+const missionHrefByKey = new Map<string, string>();
+for (const episode of episodeRecords) {
+  missionHrefByKey.set(
+    watchKeyForEpisode(episode.data.series, episode.data.season, episode.data.episode),
+    `/episodes/${episode.id}/`
+  );
+}
+for (const film of filmRecords) missionHrefByKey.set(film.data.watchKey, `/films/${film.id}/`);
+const watchEntryByKey = new Map(watchOrder.map((watchEntry) => [watchEntry.key, watchEntry]));
+const previouslyRelevant = d.previouslyRelevant
+  .map((link) => {
+    const watchEntry = watchEntryByKey.get(link.watchKey);
+    if (!watchEntry) return null;
+    return {
+      ...link,
+      title: watchEntry.title,
+      series: watchEntry.series,
+      code: codeForWatchEntry(watchEntry),
+      href: missionHrefByKey.get(link.watchKey) ?? '/watch-order'
+    };
+  })
+  .filter(Boolean);
 const episodeCode = `S${String(d.season).padStart(2, '0')}E${String(d.episode).padStart(2, '0')}`;
 const watchKey = watchKeyForEpisode(d.series, d.season, d.episode);
 const watchIndex = watchOrderIndex.get(watchKey);
@@ -93,6 +117,29 @@ const spoilerCopy = d.spoilerLevel === 'episode'
               <p>{d.whyItMatters}</p>
             </div>
           </section>
+
+          {previouslyRelevant.length > 0 && (
+            <section class="previously-relevant" aria-labelledby="previously-relevant-title">
+              <div class="eyebrow">Continuity refresher</div>
+              <h2 id="previously-relevant-title">Previously Relevant</h2>
+              <p class="previously-relevant-intro">Earlier missions that materially set up this one.</p>
+              <div class="previously-relevant-list">
+                {previouslyRelevant.map((link) => link && (
+                  <a href={link.href}>
+                    <div class="previously-relevant-code">
+                      <span>{link.series}</span>
+                      <strong>{link.code}</strong>
+                    </div>
+                    <div class="previously-relevant-copy">
+                      <strong>{link.title}</strong>
+                      <span>{link.reason}</span>
+                    </div>
+                    <b aria-hidden="true">→</b>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
 
           {d.biggerPicture && (
             <section class="bigger-picture" aria-labelledby="bigger-picture-title">
@@ -224,6 +271,19 @@ const spoilerCopy = d.spoilerLevel === 'episode'
   .why-it-matters { margin-top:1.4rem; padding-top:1.25rem; border-top:1px solid var(--line); }
   .why-it-matters h3 { margin:.35rem 0 .55rem; font-size:1.35rem; }
   .why-it-matters p { margin:0; color:var(--muted); line-height:1.72; }
+  .previously-relevant { margin:0 0 1.4rem; padding:1.2rem; border:1px solid var(--line); border-radius:14px; background:rgba(17,23,27,.72); }
+  .previously-relevant h2 { margin:.35rem 0 .35rem; }
+  .previously-relevant-intro { margin:0 0 .85rem; color:var(--muted); font-size:.88rem; }
+  .previously-relevant-list { display:grid; }
+  .previously-relevant-list a { display:grid; grid-template-columns:95px minmax(0,1fr) 20px; gap:1rem; align-items:center; padding:.9rem 0; border-top:1px solid var(--line); text-decoration:none; }
+  .previously-relevant-list a:hover .previously-relevant-copy > strong, .previously-relevant-list a:hover > b { color:var(--accent); }
+  .previously-relevant-code { display:grid; gap:.16rem; }
+  .previously-relevant-code span { color:var(--muted); font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; }
+  .previously-relevant-code strong { color:var(--accent); font-size:.78rem; letter-spacing:.06em; }
+  .previously-relevant-copy { display:grid; gap:.24rem; }
+  .previously-relevant-copy > strong { color:var(--text); }
+  .previously-relevant-copy span { color:var(--muted); font-size:.82rem; line-height:1.5; }
+  .previously-relevant-list a > b { color:var(--muted); text-align:right; }
   .episode-thread-links { margin: 0 0 1.4rem; padding: 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: rgba(17,23,27,.72); }
   .episode-thread-links h2 { margin: .35rem 0 1rem; }
   .episode-thread-list { display: grid; }
@@ -244,5 +304,11 @@ const spoilerCopy = d.spoilerLevel === 'episode'
   .watch-order-link { margin-top:.15rem; font-size:.78rem; }
   .gated-sidebar-panel { margin-top:1rem; }
   [hidden] { display:none !important; }
-  @media (max-width: 650px) { .episode-thread-list a { align-items: flex-start; flex-direction: column; } }
+  @media (max-width: 650px) {
+    .episode-thread-list a { align-items:flex-start; flex-direction:column; }
+    .previously-relevant-list a { grid-template-columns:1fr 20px; gap:.45rem .8rem; }
+    .previously-relevant-code { grid-column:1; display:flex; gap:.5rem; align-items:center; }
+    .previously-relevant-copy { grid-column:1; }
+    .previously-relevant-list a > b { grid-column:2; grid-row:1 / span 2; }
+  }
 </style>
