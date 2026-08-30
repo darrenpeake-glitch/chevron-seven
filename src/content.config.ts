@@ -28,6 +28,14 @@ const episodePoint = z.object({
   season: z.number().int().positive(),
   episode: z.number().int().positive()
 });
+const question = z.object({
+  question: z.string(),
+  resolvesAt: z.string().optional(),
+  answer: z.string().optional(),
+  note: z.string().optional()
+}).refine((item) => !item.answer || item.resolvesAt, {
+  message: 'A question answer must have a resolvesAt watch key.'
+});
 
 const missionFields = {
   title: z.string(),
@@ -43,6 +51,7 @@ const missionFields = {
   arcs: z.array(z.string()).default([]),
   connections: z.array(connection).default([]),
   continuityWeight: continuityWeight.default('standalone'),
+  questions: z.array(question).default([]),
   quotes: z.array(z.object({
     text: z.string(),
     speaker: z.string(),
