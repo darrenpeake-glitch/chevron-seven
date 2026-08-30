@@ -163,7 +163,7 @@ const spoilerCopy = d.spoilerLevel === 'episode'
   </nav>
 
   <script id="mission-through-keys" type="application/json" set:html={JSON.stringify(throughKeys)}></script>
-  <script src="/watch-progress.js"></script>
+  <script is:inline src="/watch-progress.js"></script>
   <script is:inline>
     (() => {
       const panel = document.querySelector('.watch-panel');
