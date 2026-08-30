@@ -28,6 +28,11 @@ technology:
 arcs:
   - Alternate realities
   - Asgard–Tau'ri alliance
+connections:
+  - Alternate reality
+  - Asgard
+  - Character
+continuityWeight: arc
 previouslyRelevant:
   - watchKey: "sg1:1:20"
     reason: "There But for the Grace of God introduces the quantum mirror and establishes an alternate Earth destroyed by the Goa'uld, providing the rules and stakes for returning to another reality."
