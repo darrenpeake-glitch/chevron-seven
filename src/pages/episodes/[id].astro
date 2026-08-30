@@ -67,7 +67,32 @@ const spoilerCopy = d.spoilerLevel === 'episode'
 
   <section class="section mission-body-section">
     <div class="shell mission-layout">
-      <main class="mission-main"><article class="mission-article"><Content /></article></main>
+      <main class="mission-main">
+        {d.biggerPicture && (
+          <section class="bigger-picture" aria-labelledby="bigger-picture-title">
+            <div class="bigger-picture-head">
+              <div>
+                <div class="eyebrow">Franchise significance</div>
+                <h2 id="bigger-picture-title">Bigger Picture</h2>
+              </div>
+              <span class="bigger-picture-badge">THREAD ACTIVE</span>
+            </div>
+            <p>{d.biggerPicture.summary}</p>
+            {d.biggerPicture.threads.length > 0 && (
+              <div class="bigger-picture-threads">
+                {d.biggerPicture.threads.map((thread) => <span>{thread}</span>)}
+              </div>
+            )}
+            {d.biggerPicture.fullContext && (
+              <details class="bigger-picture-full">
+                <summary>Full franchise context — later spoilers</summary>
+                <p>{d.biggerPicture.fullContext}</p>
+              </details>
+            )}
+          </section>
+        )}
+        <article class="mission-article"><Content /></article>
+      </main>
 
       <aside class="mission-sidebar">
         <div class="sidebar-panel">
