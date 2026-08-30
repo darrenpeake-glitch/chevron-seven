@@ -6,9 +6,28 @@ summary: "Tactical commander, reluctant diplomat and the human center of SG-1's 
 spoilerLevel: episode
 safeThrough:
   series: SG-1
-  season: 3
-  episode: 4
-status: "REWATCH-SAFE PROFILE"
+  season: 1
+  episode: 1
+revelations:
+  - after:
+      series: SG-1
+      season: 1
+      episode: 7
+    heading: "The man behind the command"
+    text: "Cold Lazarus exposes the grief beneath O'Neill's dry field persona and makes clear that his return to active duty is also part of rebuilding a life after Charlie's death."
+  - after:
+      series: SG-1
+      season: 2
+      episode: 15
+    heading: "Chosen by the Ancients' legacy"
+    text: "The Fifth Race shows that O'Neill can interface with the Ancient repository of knowledge, marking him as unusually compatible with technology far beyond Earth's understanding."
+  - after:
+      series: SG-1
+      season: 3
+      episode: 3
+    heading: "Reluctant diplomat"
+    text: "Fair Game puts O'Neill at the center of interstellar diplomacy. Thor's trust in him shows that his value to Earth's allies extends well beyond conventional military command."
+status: "PROGRESSIVE PROFILE"
 aliases:
   - "Colonel O'Neill"
   - "Jack"
@@ -38,7 +57,3 @@ He is the team's tactical lead and final field authority. Carter supplies much o
 - Protective of his team.
 - Frequently impatient with ceremony, politics and excessive explanation.
 - More perceptive than his deliberately casual manner suggests.
-
-## Rewatch Position
-
-This profile is intentionally limited to information established by **SG-1 S03E04 — Legacy**. Later developments are excluded from the main record.
