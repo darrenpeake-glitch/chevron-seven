@@ -11,6 +11,17 @@ factions: ["Tau'ri", "Abydonians", "Ra"]
 worlds: ["Earth", "Abydos"]
 technology: ["Stargate"]
 arcs: ["Franchise origin", "Goa'uld conflict"]
+timelineEvents:
+  - era: "Ancient Egypt"
+    sortOrder: 500
+    title: "Ra rules humans as a god"
+    text: "Ra exploits the Stargate to dominate human populations, helping create the connection between extraterrestrial rule and ancient Egyptian religion."
+    category: Goauld
+  - era: "Ancient Egypt"
+    sortOrder: 520
+    title: "Earth's Stargate is buried"
+    text: "Humans on Earth rebel against Ra and bury the Stargate, severing regular contact with the off-world empire for millennia."
+    category: Earth
 spoilerLevel: episode
 rewatchRating: 5
 featured: true
