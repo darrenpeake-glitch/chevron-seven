@@ -23,6 +23,7 @@ const connection = z.enum([
   'Time travel',
   'Tokra'
 ]);
+const timelineCategory = z.enum(['Ancients', 'Asgard', 'Goauld', 'Jaffa', 'Tau ri', 'Tokra', 'Earth', 'Galactic']);
 const episodePoint = z.object({
   series: seriesName,
   season: z.number().int().positive(),
@@ -35,6 +36,13 @@ const question = z.object({
   note: z.string().optional()
 }).refine((item) => !item.answer || item.resolvesAt, {
   message: 'A question answer must have a resolvesAt watch key.'
+});
+const timelineEvent = z.object({
+  era: z.string(),
+  sortOrder: z.number().int(),
+  title: z.string(),
+  text: z.string(),
+  category: timelineCategory
 });
 
 const missionFields = {
@@ -52,6 +60,7 @@ const missionFields = {
   connections: z.array(connection).default([]),
   continuityWeight: continuityWeight.default('standalone'),
   questions: z.array(question).default([]),
+  timelineEvents: z.array(timelineEvent).default([]),
   quotes: z.array(z.object({
     text: z.string(),
     speaker: z.string(),
