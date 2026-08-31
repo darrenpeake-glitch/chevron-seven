@@ -20,6 +20,17 @@ technology:
   - "Stargate"
 arcs:
   - "Ancient legacy"
+timelineEvents:
+  - era: "Distant galactic past"
+    sortOrder: 120
+    title: "Four advanced races share knowledge"
+    text: "A surviving meeting place shows that four highly advanced civilizations once exchanged knowledge and communicated through a shared scientific language."
+    category: Galactic
+  - era: "1945"
+    sortOrder: 1945
+    title: "Earth activates the Stargate before the modern programme"
+    text: "Ernest Littlefield travels through the Stargate during a secret 1945 experiment, proving that Earth's first successful activation predates the modern SGC by decades."
+    category: Earth
 narrativeThreads: []
 spoilerLevel: episode
 rewatchRating: 5
