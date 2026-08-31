@@ -31,6 +31,17 @@ connections:
   - Asgard
   - Technology
 continuityWeight: essential
+timelineEvents:
+  - era: "Distant galactic past"
+    sortOrder: 100
+    title: "The Ancients build the Stargate network"
+    text: "The repository identifies the Ancients as the civilization behind the Stargate system and preserves knowledge far beyond modern human science."
+    category: Ancients
+  - era: "Distant galactic past"
+    sortOrder: 140
+    title: "The alliance of four great races"
+    text: "The Asgard identify themselves as one member of an older alliance alongside the Ancients, Nox and Furlings, placing humanity against a much deeper galactic history."
+    category: Asgard
 previouslyRelevant:
   - watchKey: "sg1:1:11"
     reason: "The alliance of four advanced races is first glimpsed through the meeting-place discovered by Ernest Littlefield."
