@@ -1,0 +1,177 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { watchKeyForEpisode } from '../lib/watch-order';
+
+const episodes = (await getCollection('episodes')).filter((entry) => !entry.data.draft);
+const films = (await getCollection('films')).filter((entry) => !entry.data.draft);
+
+const events = [
+  ...episodes.flatMap((entry) => {
+    const sourceKey = watchKeyForEpisode(entry.data.series, entry.data.season, entry.data.episode);
+    return entry.data.timelineEvents.map((event, eventIndex) => ({
+      ...event,
+      id: `${entry.id}-${eventIndex}`,
+      sourceKey,
+      sourceTitle: entry.data.title,
+      sourceLabel: `${entry.data.series} · S${String(entry.data.season).padStart(2, '0')}E${String(entry.data.episode).padStart(2, '0')}`,
+      sourceHref: `/episodes/${entry.id}/`
+    }));
+  }),
+  ...films.flatMap((entry) => entry.data.timelineEvents.map((event, eventIndex) => ({
+    ...event,
+    id: `${entry.id}-${eventIndex}`,
+    sourceKey: entry.data.watchKey,
+    sourceTitle: entry.data.title,
+    sourceLabel: 'Feature film',
+    sourceHref: `/films/${entry.id}/`
+  })))
+].sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
+
+const categories = [...new Set(events.map((event) => event.category))].sort();
+---
+<BaseLayout title="Your Timeline · Chevron Seven" description="A spoiler-safe in-universe Stargate chronology assembled from what you have watched and learned so far.">
+  <section class="timeline-hero">
+    <div class="shell timeline-hero-grid">
+      <div>
+        <div class="eyebrow">Recovered chronology</div>
+        <h1 class="episode-title">Your Timeline</h1>
+        <p class="lede">The history of the Stargate universe as your rewatch has revealed it. Events appear only when the mission that teaches you about them has been watched.</p>
+      </div>
+      <div class="timeline-status">
+        <span class="mission-label">Known chronology</span>
+        <strong id="timeline-known-count">0</strong>
+        <span>events currently unlocked</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="timeline-controls">
+    <div class="shell timeline-controls-inner">
+      <span class="mission-label">Filter knowledge</span>
+      <div class="timeline-filter-row" role="group" aria-label="Timeline category filters">
+        <button type="button" class="timeline-filter is-active" data-timeline-filter="all">All</button>
+        {categories.map((category) => <button type="button" class="timeline-filter" data-timeline-filter={category}>{category}</button>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section timeline-body">
+    <div class="shell">
+      <div class="timeline-empty" id="timeline-empty">
+        <div class="eyebrow">No historical intelligence unlocked</div>
+        <h2>Your chronology is still classified.</h2>
+        <p>As watched missions reveal historical context, the timeline will assemble itself here.</p>
+        <a class="button-primary" href="/watch-order">Open Watch Order</a>
+      </div>
+
+      <div class="timeline-list" id="timeline-list">
+        {events.map((event) => (
+          <article
+            class="timeline-entry"
+            data-timeline-entry
+            data-watch-key={event.sourceKey}
+            data-category={event.category}
+            hidden
+          >
+            <div class="timeline-rail" aria-hidden="true"><span></span></div>
+            <div class="timeline-era">{event.era}</div>
+            <div class="timeline-card">
+              <div class="timeline-card-head">
+                <div>
+                  <span class="timeline-category">{event.category}</span>
+                  <h2>{event.title}</h2>
+                </div>
+              </div>
+              <p>{event.text}</p>
+              <a class="timeline-source" href={event.sourceHref}>
+                <span class="mission-label">Learned in</span>
+                <strong>{event.sourceTitle}</strong>
+                <span>{event.sourceLabel} →</span>
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <script is:inline src="/watch-progress.js"></script>
+  <script is:inline>
+    (() => {
+      if (!window.ChevronWatch) return;
+      const entries = [...document.querySelectorAll('[data-timeline-entry]')];
+      const filters = [...document.querySelectorAll('[data-timeline-filter]')];
+      const count = document.getElementById('timeline-known-count');
+      const empty = document.getElementById('timeline-empty');
+      let activeFilter = 'all';
+
+      const render = () => {
+        const watched = new Set(window.ChevronWatch.load());
+        let known = 0;
+        let visible = 0;
+        entries.forEach((entry) => {
+          const unlocked = watched.has(entry.dataset.watchKey);
+          const matches = activeFilter === 'all' || entry.dataset.category === activeFilter;
+          if (unlocked) known += 1;
+          entry.hidden = !(unlocked && matches);
+          if (!entry.hidden) visible += 1;
+        });
+        count.textContent = String(known);
+        empty.hidden = visible > 0;
+      };
+
+      filters.forEach((button) => button.addEventListener('click', () => {
+        activeFilter = button.dataset.timelineFilter || 'all';
+        filters.forEach((item) => item.classList.toggle('is-active', item === button));
+        render();
+      }));
+
+      window.addEventListener('chevron-watch-change', render);
+      render();
+    })();
+  </script>
+
+  <style>
+    .timeline-hero { padding:5rem 0 3.5rem; border-bottom:1px solid var(--line); background:radial-gradient(circle at 80% 20%,rgba(212,167,76,.08),transparent 24rem); }
+    .timeline-hero-grid { display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:4rem; align-items:end; }
+    .timeline-status { min-height:140px; padding:1.2rem; border:1px solid var(--line); border-radius:14px; background:var(--panel); display:grid; align-content:end; gap:.25rem; }
+    .timeline-status strong { color:var(--accent); font-size:2.4rem; line-height:1; }
+    .timeline-status > span:last-child { color:var(--muted); font-size:.8rem; }
+    .timeline-controls { border-bottom:1px solid var(--line); background:#0b1013; }
+    .timeline-controls-inner { padding-top:1rem; padding-bottom:1rem; display:grid; gap:.65rem; }
+    .timeline-filter-row { display:flex; flex-wrap:wrap; gap:.45rem; }
+    .timeline-filter { padding:.4rem .7rem; border:1px solid var(--line); border-radius:999px; background:transparent; color:var(--muted); cursor:pointer; font:inherit; font-size:.74rem; }
+    .timeline-filter:hover,.timeline-filter.is-active { color:var(--accent); border-color:var(--accent-soft); background:rgba(212,167,76,.04); }
+    .timeline-body { padding-top:3rem; }
+    .timeline-empty { padding:2rem; border:1px solid var(--line); border-radius:14px; background:var(--panel); }
+    .timeline-empty h2 { margin:.35rem 0 .6rem; }
+    .timeline-empty p { color:var(--muted); margin:0 0 1.2rem; }
+    .timeline-list { display:grid; }
+    .timeline-entry { display:grid; grid-template-columns:28px 145px minmax(0,1fr); gap:1.2rem; position:relative; }
+    .timeline-rail { position:relative; display:flex; justify-content:center; }
+    .timeline-rail::before { content:""; position:absolute; top:0; bottom:0; width:1px; background:var(--line); }
+    .timeline-rail span { position:relative; z-index:1; width:11px; height:11px; margin-top:1.65rem; border:2px solid var(--accent); border-radius:50%; background:var(--bg); }
+    .timeline-era { padding-top:1.35rem; color:var(--accent); font-size:.78rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+    .timeline-card { margin:0 0 1.4rem; padding:1.25rem; border:1px solid var(--line); border-radius:14px; background:rgba(17,23,27,.74); }
+    .timeline-card h2 { margin:.3rem 0 .7rem; font-size:1.3rem; }
+    .timeline-card > p { margin:0; color:var(--muted); line-height:1.7; }
+    .timeline-category { color:var(--muted); font-size:.68rem; text-transform:uppercase; letter-spacing:.07em; }
+    .timeline-source { margin-top:1rem; padding-top:.9rem; border-top:1px solid var(--line); display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:.65rem; align-items:center; text-decoration:none; }
+    .timeline-source strong { color:var(--text); font-size:.84rem; }
+    .timeline-source > span:last-child { color:var(--accent); font-size:.74rem; }
+    .timeline-source:hover strong { color:var(--accent); }
+    [hidden] { display:none !important; }
+    @media (max-width:760px) {
+      .timeline-hero-grid { grid-template-columns:1fr; gap:2rem; }
+      .timeline-status { min-height:110px; }
+      .timeline-entry { grid-template-columns:24px minmax(0,1fr); gap:.8rem; }
+      .timeline-era { grid-column:2; padding-top:1rem; }
+      .timeline-card { grid-column:2; }
+      .timeline-rail { grid-row:1 / span 2; }
+    }
+    @media (max-width:520px) {
+      .timeline-source { grid-template-columns:1fr; gap:.2rem; }
+    }
+  </style>
+</BaseLayout>
